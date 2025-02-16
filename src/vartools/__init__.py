@@ -12,7 +12,7 @@ conf is the confidence level
 long is a boolean that indicates if the portfolio is long or short
 """
 
-def var_stocks(data, stocks, n_stocks, conf, long):
+def var_stocks(data, n_stocks, conf, long, stocks):
     data = data.sort_index()
     data = data[stocks]
     rt = data.pct_change().dropna()
@@ -54,7 +54,7 @@ conf is the confidence level
 long is a boolean that indicates if the portfolio is long or short
 """
 
-def var_forex(data, currencies, positions, conf, long):
+def var_forex(data, positions, conf, long, currencies):
     data = data.sort_index()
     data = data[currencies]
     port = data * positions
@@ -84,3 +84,22 @@ def var_forex(data, currencies, positions, conf, long):
     })
 
     return var_df
+
+"""
+The third function is for the rebalancing a portfolio
+You need to calculate the value of your portfolio
+Calculate the weights of each asset
+Calculate the target weights
+data is a dataframe with the stock prices
+w_original and target_weights are vectors with the weights of each asset
+"""
+
+def rebalance_stocks(w_original, target_weights, data, stocks, portfolio_value):
+    data = data.sort_index()
+    data = data[stocks]
+    w_df = pd.DataFrame({
+    "Peso Original": w_original,
+    "Peso Óptimo": target_weights,
+    "Acciones (C/V)" : np.floor((target_weights-w_original) * portfolio_value / data.iloc[-1])
+    })
+    return w_df.T
