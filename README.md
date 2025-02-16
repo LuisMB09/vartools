@@ -6,6 +6,7 @@ This Python library provides functions to calculate the **Value at Risk (VaR)** 
 ## Features
 - Calculate **VaR** and **cVaR** for a **stock portfolio**.
 - Calculate **VaR** and **cVaR** for a **forex portfolio**.
+- Rebalance a **stock portfolio**.
 - Supports both **long** and **short** positions.
 - Outputs results in both **percentage** and **cash value**.
 
@@ -51,11 +52,25 @@ A DataFrame with the following columns:
 - **Porcentual**: The percentage value of risk.
 - **Cash**: The risk in monetary terms.
 
+### `rebalance_stocks(w_original, target_weights, data, stocks, portfolio_value)`
+Calculates the number of shres to buy/sell to rebalance a **stock portfolio**..
+
+#### Parameters:
+- **w_original**: `list` of floats representing the original weights of each asset in the portfolio.
+- **target_weights**: `list` of floats representing the target weights of each asset in the portfolio.
+- **data**: `pd.DataFrame` with historical stock prices, where columns represent different stocks.
+- **stocks**: `list` of stock tickers (column names in the `data` DataFrame).
+- **portfolio_value**: `float` representing the total value of the portfolio.
+
+#### Returns:
+- A `pd.DataFrame` showing the original weights, target weights, and the number of shares to buy or sell for each asset to rebalance the portfolio.
+
+
 ## Usage Example
 ```python
 import pandas as pd
 import numpy as np
-import vartools as vt #from vartools import var_stocks, var_forex
+import vartools as vt #from vartools import var_stocks, var_forex, rebalance_stocks
 
 # Example data
 stock_data = pd.DataFrame({...})  # Stock price data, you can use yfinance
@@ -76,6 +91,16 @@ positions = [10000, 5000]
 # Calculate forex portfolio VaR
 forex_var = var_forex(forex_data, currency_pairs, positions, confidence, is_long)
 print(forex_var)
+
+# Rebalance your portfolio
+w_original = np.array([0.4, 0.3, 0.3])
+target_weights = np.array([0.5, 0.25, 0.25])
+data = pd.DataFrame({...})  # Stock price data
+stocks = ["AAPL", "MSFT", "GOOGL"]
+portfolio_value = 100000
+
+rebalance_df = rebalance_stocks(w_original, target_weights, data, stocks, portfolio_value)
+print(rebalance_df)
 ```
 
 ## License
