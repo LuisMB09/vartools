@@ -20,7 +20,7 @@ pip install pandas
 
 ## Functions
 
-### `var_stocks(data, stocks, n_stocks, conf, long)`
+### `var_stocks(data, n_stocks, conf, long, stocks)`
 Calculates the **VaR** and **cVaR** for a stock portfolio.
 
 #### Parameters:
@@ -36,7 +36,7 @@ A DataFrame with the following columns:
 - **Porcentaje**: The percentage value of risk.
 - **Cash**: The risk in monetary terms.
 
-### `var_forex(data, currencies, positions, conf, long)`
+### `var_forex(data, positions, conf, long, currencies)`
 Calculates the **VaR** and **cVaR** for a forex portfolio.
 
 #### Parameters:
@@ -75,6 +75,8 @@ import vartools as vt #from vartools import var_stocks, var_forex, rebalance_sto
 # Example data
 stock_data = pd.DataFrame({...})  # Stock price data, you can use yfinance
 tickers = ['AAPL', 'GOOGL', 'MSFT']
+# Make sure that columns coincide with de tickers order
+stock_data = stock_data[tickers]
 n_shares = [10, 5, 8]
 confidence = 95
 is_long = True
@@ -86,6 +88,8 @@ print(stock_var)
 # Example forex data
 forex_data = pd.DataFrame({...})  # Forex currency pair data, you can use yfinance
 currency_pairs = ['EUR/USD', 'GBP/USD']
+# Make sure that columns coincide with de tickers order
+forex_data = forex_data[currency_pairs]
 positions = [10000, 5000]
 
 # Calculate forex portfolio VaR
@@ -97,6 +101,8 @@ w_original = np.array([0.4, 0.3, 0.3])
 target_weights = np.array([0.5, 0.25, 0.25])
 data = pd.DataFrame({...})  # Stock price data
 stocks = ["AAPL", "MSFT", "GOOGL"]
+# Make sure that columns coincide with de tickers order
+data = data[stocks]
 portfolio_value = 100000
 
 rebalance_df = rebalance_stocks(w_original, target_weights, data, stocks, portfolio_value)
