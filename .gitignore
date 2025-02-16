@@ -1,0 +1,5 @@
+# Ignore Python build artifacts
+*.whl
+*.tar.gz
+dist/
+build/
