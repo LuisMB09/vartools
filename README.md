@@ -55,7 +55,7 @@ A DataFrame with the following columns:
 ```python
 import pandas as pd
 import numpy as np
-from vartools import var_stocks, var_forex  # Replace with actual import path
+import vartools as vt #from vartools import var_stocks, var_forex
 
 # Example data
 stock_data = pd.DataFrame({...})  # Stock price data, you can use yfinance
