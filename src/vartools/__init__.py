@@ -2,6 +2,16 @@ import numpy as np
 import pandas as pd
 pd.set_option('display.float_format', '{:,.4f}'.format)
 
+"""
+Python library for calculating VaR
+The first function is for the VaR of a stock portfolio
+data refers to the dataframe with the stock prices
+stocks is a list with the stock tickers
+n_stocks is a list with the number of stocks of each ticker
+conf is the confidence level
+long is a boolean that indicates if the portfolio is long or short
+"""
+
 def var_stocks(data, stocks, n_stocks, conf, long):
     data = data.sort_index()
     data = data[stocks]
@@ -34,6 +44,15 @@ def var_stocks(data, stocks, n_stocks, conf, long):
     })
 
     return var_stocks_df
+
+"""
+The second function is for the VaR of a forex portfolio
+data refers to the dataframe with the forex prices, be sure to download the correct currency pairs
+currencies is a list with the currency pairs
+positions is a list with the number of units of each currency pair
+conf is the confidence level
+long is a boolean that indicates if the portfolio is long or short
+"""
 
 def var_forex(data, currencies, positions, conf, long):
     data = data.sort_index()
