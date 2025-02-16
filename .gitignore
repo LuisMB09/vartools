@@ -1,7 +1,6 @@
-# Ignore Python build artifacts
+# Ignore build artifacts
 *.whl
 *.tar.gz
 *.DS_Store
-
 dist/
 build/
