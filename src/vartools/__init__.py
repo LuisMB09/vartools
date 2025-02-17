@@ -115,3 +115,17 @@ It is done in a way that the order of the columns is the same as the order of th
 def get_data(stocks, start_date, end_date, type):
     data=yf.download(stocks, start=start_date, end=end_date)[type][stocks]
     return data
+
+"""
+The fifth function is for obtainig the VaR as a percent when you only have the weights of the portfolio
+It just receives a dataframe with the prices of the stocks (data)
+It works only for long postitons
+"""
+
+def var_weights(data, weights, conf):
+    data = data.sort_index()
+    rt = data.pct_change().dropna()
+    portfolio_returns = np.dot(weights, rt.T)
+    var = np.percentile(portfolio_returns, 100-conf)
+    cvar_pct = np.abs(portfolio_returns[portfolio_returns < var].mean())
+    return var, cvar_pct
