@@ -177,6 +177,20 @@ w_opt = [0.33, 0.15, 0.06, 0.46, 0.00]
 rebalance_df = vt.rebalance_stocks(w_original, w_opt, data, stocks, portfolio_value)
 ```
 
+## var_weights
+```python
+stocks = ["AAPL", "TSLA", "AMD", "LMT", "JPM"]
+start_date = "2020-01-01"
+end_date = "2023-01-01"
+type = 'Adj Close' # 'Close', select the type of price you want to download
+
+data = vt.get_data(stocks, start_date, end_date, type)
+
+weights = [0.2457, 0.1301, 0.1820, 0.3064, 0.1358]
+conf = 95
+var_pct, cvar_pct = vt.var_weights(data, weights, conf)
+```
+
 ## License
 This project is licensed under the GPL-3.0 license.
 
