@@ -324,6 +324,48 @@ def mcc_portfolio(returns, alpha):
 
     return mcc_df
 
+
+def cvar_contributions(weights, returns, alpha):
+    """
+    Calculates the individual CVaR contributions of each asset in the portfolio.
+    """
+    n_assets = len(weights)
+    # CVaR for only long positions
+    def portfolio_return(returns, weights):
+        return np.dot(returns, weights)
+
+    # Better way to calculate CVaR than the one used in my homework 1. I used .query in the homework, but checking with friends this way is better.
+    def cvar(portfolio_returns, alpha):
+        var = np.percentile(portfolio_returns, alpha*100)
+        cvar = -portfolio_returns[portfolio_returns < var].mean()
+        return cvar
+
+    def individual_cvar_contributions(weights, returns, alpha):
+        portfolio_returns = portfolio_return(returns, weights)
+        var = np.percentile(portfolio_returns, alpha*100)
+
+        # check which days are in the cvar for the portfolio
+        bad_days_portfolio = portfolio_returns < var
+
+        contributions = []
+        # chech the returns of each asset the days where the portfolio is in the cvar to know the contribution
+        for i in range(n_assets):
+            asset_contribution = -returns.iloc[:, i][bad_days_portfolio].mean() * weights[i]
+            contributions.append(asset_contribution)
+        
+        portfolio_cvar = cvar(portfolio_returns, alpha)
+
+        percentage_contributions = []
+        for j in range(len(contributions)):
+            pct_contributions = contributions[j] / portfolio_cvar
+            percentage_contributions.append(pct_contributions)
+        
+        return contributions
+    contributions = individual_cvar_contributions(weights, returns, alpha)
+    
+    return contributions
+
+
 def plot_weights(df):
     """
     It creates a pie chart with the weights of the portfolio

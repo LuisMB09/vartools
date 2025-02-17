@@ -164,6 +164,21 @@ It returns a dataFrame with the optimal weight for each stock.
 
 **Note:** It is required to write alpha in decimal notation, also this portfolio strategy only works for long positions.
 
+
+### `def cvar_contributions(weights, returns, alpha)`
+
+#### Parameters:
+- weights: An array with the weights for each asset in the portfolio.
+- returns (*pd.DataFrame*): DataFrame containing historical asset returns.
+- alpha (float): Significance level for CVaR (example: 0.05 for 95% confidence level).
+
+#### Returns:
+It returns an array with the individual contribution of each asset to the cvar of the portfolio.
+
+**Note:** It is required to write alpha in decimal notation, also this portfolio strategy only works for long positions, so the weights must add up to 1.
+
+
+
 ### `plot_weights(df)`
 
 #### Parameters
@@ -330,6 +345,25 @@ alpha = 0.05
 
 mcc_weights_df = vt.mcc_portfolio(returns, alpha)
 ```
+
+## cvar_contributions
+```python
+# bonds, commodities, equities and real estate
+stocks = ['VBTLX', 'GSG', 'VTI', 'VNQ']
+start_date = '2019-01-01'
+end_date = '2024-01-01'
+type = 'Adj Close'
+
+data = vt.get_data(stocks, start_date, end_date, type)
+returns = data.pct_change().dropna()
+alpha = 0.05
+
+mcc_weights_df = vt.mcc_portfolio(returns, alpha)
+w = mcc_weights_df['w'].values
+
+cvar_contributions = vt.cvar_contributions(w, returns, alpha)
+```
+
 
 ## plot_weights
 ```python
