@@ -128,4 +128,4 @@ def var_weights(data, weights, conf):
     portfolio_returns = np.dot(weights, rt.T)
     var = np.percentile(portfolio_returns, 100-conf)
     cvar_pct = np.abs(portfolio_returns[portfolio_returns < var].mean())
-    return var, cvar_pct
+    return np.abs(var), cvar_pct
