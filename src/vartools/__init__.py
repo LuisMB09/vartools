@@ -220,3 +220,53 @@ def min_variance(returns):
     min_var_df = pd.DataFrame(min_var_weights, index=returns.columns, columns=['w'])
 
     return min_var_df.T
+
+
+
+def mcc_portfolio(returns, alpha):
+    """
+    Optimizes portfolio weights using the Minimum CVaR Contribution (MCC) approach.
+
+    Parameters:
+    - returns (pd.DataFrame): DataFrame containing historical asset returns.
+    - alpha (float): Significance level for CVaR (default: 0.05 for 95% confidence level).
+    """
+
+    n_assets = len(returns.columns)
+
+    def portfolio_return(returns, weights):
+        return np.dot(returns, weights)
+
+    def cvar(portfolio_returns, alpha):
+        var = np.percentile(portfolio_returns, alpha * 100)
+        return -portfolio_returns[portfolio_returns < var].mean()
+
+    def individual_cvar_contributions(weights, returns, alpha):
+        portfolio_returns = portfolio_return(returns, weights)
+        var = np.percentile(portfolio_returns, alpha * 100)
+
+        bad_days_portfolio = portfolio_returns < var
+        contributions = [-returns.iloc[:, i][bad_days_portfolio].mean() * weights[i] for i in range(n_assets)]
+        
+        return contributions
+
+    def optimal_mcc(weights, returns, alpha):
+        return np.max(individual_cvar_contributions(weights, returns, alpha))
+
+    constraints = [{"type": "eq", "fun": lambda w: np.sum(w) - 1}]
+    bounds = tuple((0, 1) for _ in range(n_assets))
+    initial_weights = np.ones(n_assets) / n_assets
+
+    result = minimize(
+        fun=optimal_mcc,
+        x0=initial_weights,
+        args=(returns, alpha),
+        method="SLSQP",
+        bounds=bounds,
+        constraints=constraints,
+        tol=1e-8
+    )
+    mcc_weights = result.x
+    mcc_df = pd.DataFrame(mcc_weights, index=returns.columns, columns=['w'])
+
+    return mcc_df.T

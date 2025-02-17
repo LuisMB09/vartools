@@ -126,6 +126,19 @@ It returns a dataFrame with the optimal weight for each stock.
 #### Returns
 It returns a dataFrame with the optimal weight for each stock.
 
+
+### `mcc_portfolio(returns, alpha)`
+
+#### Parameters:
+- returns (pd.DataFrame): DataFrame containing historical asset returns.
+- alpha (float): Significance level for CVaR (example: 0.05 for 95% confidence level).
+
+#### Returns:
+It returns a dataFrame with the optimal weight for each stock.
+
+**Note:** It is required to write alpha in decimal notation, also this portfolio strategie only works for long positions.
+
+
 ## Usage Example
 ```python
 import numpy as np
