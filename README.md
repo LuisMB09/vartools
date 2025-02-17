@@ -107,7 +107,18 @@ Calculates the number of shres to buy/sell to rebalance a **stock portfolio**..
 
 **Note:** It only works for long positions, and the weights must add up to 1.
 
-### `opt_sharpe(data, rf)``
+
+### `opt_sharpe(returns, rf)``
+
+#### Parameters
+- **returns** (*pd.DataFrame*): DataFrame containing the daily returns of the stock prices.
+- **rf**: One-year risk-free rate
+
+#### Returns
+It returns a dataFrame with the optimal weight for each stock.
+
+
+### `min_variance(returns, rf)``
 
 #### Parameters
 - **returns** (*pd.DataFrame*): DataFrame containing the daily returns of the stock prices.
@@ -212,6 +223,19 @@ rf = 0.04413
 optimal_weights_df = vt.opt_sharpe(returns, rf)
 ```
 
+## min_variance
+```python
+stocks=['WMT','AAPL','GOOGL','PG','XOM','KO','CMG','F']
+start_date='2020-01-01'
+end_date='2024-11-24'
+type='Adj Close'
+
+data = vt.get_data(stocks, start_date, end_date, type)
+returns = data.pct_change().dropna()
+rf = 0.04413
+
+optimal_weights_df = vt.min_variance(returns, rf)
+```
 
 
 ## License

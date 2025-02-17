@@ -172,3 +172,45 @@ def opt_sharpe(returns, rf):
     w_opt_df = pd.DataFrame(optimal_weights, index=returns.columns, columns=['w'])
 
     return w_opt_df.T
+
+"""
+The seventh function is for obtaining the optimal weights of a portfolio to minimize the variance
+It receives a dataframe with the returns of the stocks (returns) and the risk-free rate (rf)
+"""
+
+def min_variance(returns, rf):
+    mu = (returns.mean() * 252).values
+    sigma = returns.cov().values
+    n_assets = len(mu)
+
+    # Función para minimizar (-Sharpe Ratio)
+    def min_var(w, mu, sigma, rf):
+        port_return = np.dot(w, mu)
+        port_vol = np.sqrt(np.dot(w.T, np.dot(sigma, w))) * np.sqrt(252)
+        return port_vol
+    
+    # Restricciones: Suma de pesos = 1
+    constraints = ({
+        'type': 'eq',
+        'fun': lambda w: np.sum(w) - 1
+    })
+
+    # Límites: Pesos entre 0 y 1 (no posiciones cortas)
+    bounds = tuple((0, 1) for _ in range(n_assets))
+
+    # Pesos iniciales (distribuidos uniformemente)
+    w0 = np.array([1 / n_assets] * n_assets)
+
+    # Optimización
+    result = minimize(min_var, 
+            w0, 
+            args=(mu, sigma, rf), 
+            method='SLSQP', 
+            bounds=bounds, 
+            constraints=constraints)
+    
+    # Resultados
+    min_var_weights = result.x
+    min_var_df = pd.DataFrame(min_var_weights, index=returns.columns, columns=['w'])
+
+    return min_var_df.T
