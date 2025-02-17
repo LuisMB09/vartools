@@ -61,6 +61,8 @@ A DataFrame with the following columns:
 - **Porcentaje**: The percentage value of risk.
 - **Cash**: The risk in monetary terms.
 
+**Note:** Utilize this function when you have the number of shares of each stock instead of the weights.
+
 
 ### `var_forex(data, positions, conf, long, currencies)`
 Calculates the **VaR** and **cVaR** for a forex portfolio.
