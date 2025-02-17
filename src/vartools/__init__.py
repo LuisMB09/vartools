@@ -5,17 +5,17 @@ import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 pd.set_option('display.float_format', '{:,.4f}'.format)
 
-"""
-Python library for calculating VaR
-The first function is for the VaR of a stock portfolio
-data refers to the dataframe with the stock prices
-stocks is a list with the stock tickers
-n_stocks is a list with the number of stocks of each ticker
-conf is the confidence level
-long is a boolean that indicates if the portfolio is long or short
-"""
 
 def var_stocks(data, n_stocks, conf, long, stocks):
+    """
+    Python library for calculating VaR
+    The first function is for the VaR of a stock portfolio
+    data refers to the dataframe with the stock prices
+    stocks is a list with the stock tickers
+    n_stocks is a list with the number of stocks of each ticker
+    conf is the confidence level
+    long is a boolean that indicates if the portfolio is long or short
+    """
     data = data.sort_index()
     data = data[stocks]
     rt = data.pct_change().dropna()
@@ -48,16 +48,17 @@ def var_stocks(data, n_stocks, conf, long, stocks):
 
     return var_stocks_df
 
-"""
-The second function is for the VaR of a forex portfolio
-data refers to the dataframe with the forex prices, be sure to download the correct currency pairs
-currencies is a list with the currency pairs
-positions is a list with the number of units of each currency pair
-conf is the confidence level
-long is a boolean that indicates if the portfolio is long or short
-"""
+
 
 def var_forex(data, positions, conf, long, currencies):
+    """
+    The second function is for the VaR of a forex portfolio
+    data refers to the dataframe with the forex prices, be sure to download the correct currency pairs
+    currencies is a list with the currency pairs
+    positions is a list with the number of units of each currency pair
+    conf is the confidence level
+    long is a boolean that indicates if the portfolio is long or short
+    """
     data = data.sort_index()
     data = data[currencies]
     port = data * positions
@@ -88,16 +89,17 @@ def var_forex(data, positions, conf, long, currencies):
 
     return var_df
 
-"""
-The third function is for the rebalancing a portfolio
-You need to calculate the value of your portfolio
-Calculate the weights of each asset
-Calculate the target weights
-data is a dataframe with the stock prices
-w_original and target_weights are vectors with the weights of each asset
-"""
+
 
 def rebalance_stocks(w_original, target_weights, data, stocks, portfolio_value):
+    """
+    The third function is for the rebalancing a portfolio
+    You need to calculate the value of your portfolio
+    Calculate the weights of each asset
+    Calculate the target weights
+    data is a dataframe with the stock prices
+    w_original and target_weights are vectors with the weights of each asset
+    """
     data = data.sort_index()
     data = data[stocks]
     w_df = pd.DataFrame({
@@ -107,22 +109,24 @@ def rebalance_stocks(w_original, target_weights, data, stocks, portfolio_value):
     })
     return w_df.T
 
-"""
-The fourth function is for obtaining the stock price
-It is done in a way that the order of the columns is the same as the order of the stocks
-"""
+
 
 def get_data(stocks, start_date, end_date, type):
+    """
+    The fourth function is for obtaining the stock price
+    It is done in a way that the order of the columns is the same as the order of the stocks
+    """
     data=yf.download(stocks, start=start_date, end=end_date)[type][stocks]
     return data
 
-"""
-The fifth function is for obtainig the VaR as a percent when you only have the weights of the portfolio
-It just receives a dataframe with the prices of the stocks (data)
-It works only for long postitons
-"""
+
 
 def var_weights(data, weights, conf):
+    """
+    The fifth function is for obtainig the VaR as a percent when you only have the weights of the portfolio
+    It just receives a dataframe with the prices of the stocks (data)
+    It works only for long postitons
+    """
     data = data.sort_index()
     rt = data.pct_change().dropna()
     portfolio_returns = np.dot(weights, rt.T)
@@ -130,12 +134,13 @@ def var_weights(data, weights, conf):
     cvar_pct = np.abs(portfolio_returns[portfolio_returns < var].mean())
     return np.abs(var), cvar_pct
 
-"""
-The sixth function is for obtaining the optimal weights of a portfolio to maximize the Sharpe Ratio
-It receives a dataframe with the returns of the stocks (returns) and the risk-free rate (rf)
-"""
+
 
 def opt_sharpe(returns, rf):
+    """
+    The sixth function is for obtaining the optimal weights of a portfolio to maximize the Sharpe Ratio
+    It receives a dataframe with the returns of the stocks (returns) and the risk-free rate (rf)
+    """
     mu = (returns.mean() * 252).values
     sigma = returns.cov().values
     n_assets = len(mu)
@@ -173,12 +178,13 @@ def opt_sharpe(returns, rf):
 
     return w_opt_df.T
 
-"""
-The seventh function is for obtaining the optimal weights of a portfolio to minimize the variance
-It receives a dataframe with the returns of the stocks (returns) and the risk-free rate (rf)
-"""
+
 
 def min_variance(returns):
+    """
+    The seventh function is for obtaining the optimal weights of a portfolio to minimize the variance
+    It receives a dataframe with the returns of the stocks (returns) and the risk-free rate (rf)
+    """
     mu = (returns.mean() * 252).values
     sigma = returns.cov().values
     n_assets = len(mu)
