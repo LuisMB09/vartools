@@ -148,7 +148,7 @@ portfolio_value = stock_value.sum()
 w_original = stock_value / portfolio_value
 w_opt = [0.33, 0.15, 0.06, 0.46, 0.00]
 
-vt.rebalance_stocks(w_original, w_opt, data, stocks, portfolio_value)
+rebalance_df = vt.rebalance_stocks(w_original, w_opt, data, stocks, portfolio_value)
 ```
 
 ## License
