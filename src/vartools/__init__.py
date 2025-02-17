@@ -132,7 +132,21 @@ def var_weights(data, weights, conf):
     portfolio_returns = np.dot(weights, rt.T)
     var = np.percentile(portfolio_returns, 100-conf)
     cvar_pct = np.abs(portfolio_returns[portfolio_returns < var].mean())
-    return np.abs(var), cvar_pct
+    return np.abs(var)
+
+
+def cvar_weights(data, weights, conf):
+    """
+    The fifth function is for obtainig the CVaR as a percent when you only have the weights of the portfolio
+    It just receives a dataframe with the prices of the stocks (data)
+    It works only for long postitons
+    """
+    data = data.sort_index()
+    rt = data.pct_change().dropna()
+    portfolio_returns = np.dot(weights, rt.T)
+    var = np.percentile(portfolio_returns, 100-conf)
+    cvar_pct = np.abs(portfolio_returns[portfolio_returns < var].mean())
+    return cvar_pct
 
 
 

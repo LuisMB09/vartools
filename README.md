@@ -94,6 +94,7 @@ Calculates the number of shres to buy/sell to rebalance a **stock portfolio**..
 #### Returns:
 - A `pd.DataFrame` showing the original weights, target weights, and the number of shares to buy or sell for each asset to rebalance the portfolio.
 
+
 ### `var_weights(data, weights, conf)`
 
 #### Parameters
@@ -103,9 +104,22 @@ Calculates the number of shres to buy/sell to rebalance a **stock portfolio**..
 
 #### Returns
 - **var** (*float*): The Value at Risk (VaR) at the given confidence level.
+
+**Note:** It only works for long positions, and the weights must add up to 1.
+
+
+### `cvar_weights(data, weights, conf)`
+
+#### Parameters
+- **data** (*pd.DataFrame*): DataFrame containing historical stock prices.
+- **weights** (*list or np.array*): Portfolio weights corresponding to each stock.
+- **conf** (*float*): Confidence level (e.g., 95 for 95%).
+
+#### Returns
 - **cvar_pct** (*float*): The Conditional Value at Risk (CVaR), representing the expected loss beyond VaR.
 
 **Note:** It only works for long positions, and the weights must add up to 1.
+
 
 
 ### `opt_sharpe(returns, rf)`
@@ -229,8 +243,25 @@ data = vt.get_data(stocks, start_date, end_date, type)
 
 weights = [0.2457, 0.1301, 0.1820, 0.3064, 0.1358]
 conf = 95
-var_pct, cvar_pct = vt.var_weights(data, weights, conf)
+var_pct = vt.var_weights(data, weights, conf)
 ```
+
+## var_weights
+```python
+stocks = ["AAPL", "TSLA", "AMD", "LMT", "JPM"]
+start_date = "2020-01-01"
+end_date = "2023-01-01"
+type = 'Adj Close' # 'Close', select the type of price you want to download
+
+data = vt.get_data(stocks, start_date, end_date, type)
+
+weights = [0.2457, 0.1301, 0.1820, 0.3064, 0.1358]
+conf = 95
+cvar_pct = vt.var_weights(data, weights, conf)
+```
+
+
+
 
 ## opt_sharpe
 ```python
