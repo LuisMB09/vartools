@@ -110,7 +110,7 @@ Calculates the number of shres to buy/sell to rebalance a **stock portfolio**..
 ### `opt_sharpe(data, rf)``
 
 #### Parameters
-- **data** (*pd.DataFrame*): DataFrame containing historical stock prices.
+- **returns** (*pd.DataFrame*): DataFrame containing the daily returns of the stock prices.
 - **rf**: One-year risk-free rate
 
 #### Returns
@@ -208,7 +208,7 @@ type='Adj Close'
 data = vt.get_data(stocks, start_date, end_date, type)
 rf = 0.04413
 
-optimal_weights_df = vt.opt_sharpe(data, rf)
+optimal_weights_df = vt.opt_sharpe(returns, rf)
 ```
 
 
