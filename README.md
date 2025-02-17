@@ -122,7 +122,6 @@ It returns a dataFrame with the optimal weight for each stock.
 
 #### Parameters
 - **returns** (*pd.DataFrame*): DataFrame containing the daily returns of the stock prices.
-- **rf**: One-year risk-free rate
 
 #### Returns
 It returns a dataFrame with the optimal weight for each stock.
@@ -232,9 +231,8 @@ type='Adj Close'
 
 data = vt.get_data(stocks, start_date, end_date, type)
 returns = data.pct_change().dropna()
-rf = 0.04413
 
-optimal_weights_df = vt.min_variance(returns, rf)
+optimal_weights_df = vt.min_variance(returns)
 ```
 
 

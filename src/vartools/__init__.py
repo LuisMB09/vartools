@@ -178,13 +178,13 @@ The seventh function is for obtaining the optimal weights of a portfolio to mini
 It receives a dataframe with the returns of the stocks (returns) and the risk-free rate (rf)
 """
 
-def min_variance(returns, rf):
+def min_variance(returns):
     mu = (returns.mean() * 252).values
     sigma = returns.cov().values
     n_assets = len(mu)
 
     # Función para minimizar (-Sharpe Ratio)
-    def min_var(w, mu, sigma, rf):
+    def min_var(w, mu, sigma):
         port_return = np.dot(w, mu)
         port_vol = np.sqrt(np.dot(w.T, np.dot(sigma, w))) * np.sqrt(252)
         return port_vol
@@ -204,7 +204,7 @@ def min_variance(returns, rf):
     # Optimización
     result = minimize(min_var, 
             w0, 
-            args=(mu, sigma, rf), 
+            args=(mu, sigma), 
             method='SLSQP', 
             bounds=bounds, 
             constraints=constraints)
