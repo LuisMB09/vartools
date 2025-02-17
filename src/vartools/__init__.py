@@ -328,9 +328,9 @@ def plot_weights(df):
     """
     It creates a pie chart with the weights of the portfolio
     """
-    df = df[df['w'] > 0.000001]
-    labels = df.index
-    values = df.iloc[: , 0]
+    filtered_df = df[df['w'] > 0.000001]
+    labels = filtered_df.index
+    values = filtered_df.iloc[: , 0]
 
     plt.rcParams['figure.facecolor'] = 'lightgray'
     cmap = plt.get_cmap("Blues")
