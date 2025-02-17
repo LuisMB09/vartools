@@ -206,6 +206,7 @@ end_date='2024-11-24'
 type='Adj Close'
 
 data = vt.get_data(stocks, start_date, end_date, type)
+returns = data.pct_change().dropna()
 rf = 0.04413
 
 optimal_weights_df = vt.opt_sharpe(returns, rf)
