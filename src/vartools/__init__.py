@@ -111,7 +111,7 @@ def rebalance_stocks(w_original, target_weights, data, stocks, portfolio_value):
 
 
 
-def get_data(stocks, start_date, end_date, type):
+def get_data(stocks, start_date, end_date, type='Adj Close'):
     """
     The fourth function is for obtaining the stock price
     It is done in a way that the order of the columns is the same as the order of the stocks
