@@ -94,6 +94,20 @@ Calculates the number of shres to buy/sell to rebalance a **stock portfolio**..
 #### Returns:
 - A `pd.DataFrame` showing the original weights, target weights, and the number of shares to buy or sell for each asset to rebalance the portfolio.
 
+### `var_weights(data, weights, conf)`
+
+#### Parameters
+- **data** (*pd.DataFrame*): DataFrame containing historical stock prices.
+- **weights** (*list or np.array*): Portfolio weights corresponding to each stock.
+- **conf** (*float*): Confidence level (e.g., 95 for 95%).
+
+#### Returns
+- **var** (*float*): The Value at Risk (VaR) at the given confidence level.
+- **cvar_pct** (*float*): The Conditional Value at Risk (CVaR), representing the expected loss beyond VaR.
+
+**Note:** It only works for long positions, and the weights must add up to 1.
+
+
 
 ## Usage Example
 ```python
@@ -101,6 +115,8 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 import vartools as vt
+import matplotlib.pyplot as plt
+from scipy.optimize import minimize
 ```
 
 ## get_data
