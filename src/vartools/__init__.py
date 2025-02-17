@@ -289,6 +289,7 @@ def plot_weights(df):
     """
     It creates a pie chart with the weights of the portfolio
     """
+    df = df[df['w'] > 0.000001]
     labels = df.index
     values = df.iloc[: , 0]
 
