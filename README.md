@@ -4,18 +4,23 @@
 This Python library provides functions to calculate the **Value at Risk (VaR)** and **Conditional Value at Risk (cVaR)** for financial portfolios, including stock and forex portfolios. These risk measures help in understanding potential losses under given confidence levels. It also allows you to conveniently download price data from Yahoo Finance and perform portfolio optimization using multiple strategies.
 
 ## Features
+- Download stock price data.
 - Calculate **VaR** and **cVaR** for a **stock portfolio**.
 - Calculate **VaR** and **cVaR** for a **forex portfolio**.
-- Rebalance a **stock portfolio**.
 - Supports both **long** and **short** positions.
 - Outputs results in both **percentage** and **cash value**.
+- Rebalance a **stock portfolio**.
+- Portfolio optimization for multiple strategies.
 
 ## Installation
 Ensure you have the required dependencies installed:
 
 ```bash
+pip install scipy
 pip install numpy 
 pip install pandas
+pip install yfinance
+pip install matplotlib
 ```
 
 ## Functions
@@ -70,7 +75,7 @@ Calculates the number of shres to buy/sell to rebalance a **stock portfolio**..
 ```python
 import pandas as pd
 import numpy as np
-import vartools as vt #from vartools import var_stocks, var_forex, rebalance_stocks
+import vartools as vt
 
 # Example data
 stock_data = pd.DataFrame({...})  # Stock price data, you can use yfinance
