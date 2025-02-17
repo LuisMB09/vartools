@@ -132,13 +132,12 @@ def var_weights(data, weights, conf):
 
 """
 The sixth function is for obtaining the optimal weights of a portfolio to maximize the Sharpe Ratio
-It receives a dataframe with the prices of the stocks (data) and the risk-free rate (rf)
+It receives a dataframe with the returns of the stocks (returns) and the risk-free rate (rf)
 """
 
-def opt_sharpe(data, rf):
-    rt = data.pct_change().dropna()
-    mu = (rt.mean() * 252).values
-    sigma = rt.cov().values
+def opt_sharpe(returns, rf):
+    mu = (returns.mean() * 252).values
+    sigma = returns.cov().values
     n_assets = len(mu)
 
     # Función para minimizar (-Sharpe Ratio)
@@ -170,6 +169,6 @@ def opt_sharpe(data, rf):
     
     # Resultados
     optimal_weights = result.x
-    w_opt_df = pd.DataFrame(optimal_weights, index=rt.columns, columns=['w'])
+    w_opt_df = pd.DataFrame(optimal_weights, index=returns.columns, columns=['w'])
 
     return w_opt_df.T

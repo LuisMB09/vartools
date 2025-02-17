@@ -198,6 +198,21 @@ conf = 95
 var_pct, cvar_pct = vt.var_weights(data, weights, conf)
 ```
 
+## opt_sharpe
+```python
+stocks=['WMT','AAPL','GOOGL','PG','XOM','KO','CMG','F']
+start_date='2020-01-01'
+end_date='2024-11-24'
+type='Adj Close'
+
+data = vt.get_data(stocks, start_date, end_date, type)
+rf = 0.04413
+
+optimal_weights_df = vt.opt_sharpe(data, rf)
+```
+
+
+
 ## License
 This project is licensed under the GPL-3.0 license.
 
