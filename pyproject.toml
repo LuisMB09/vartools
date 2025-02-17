@@ -18,6 +18,14 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
+dependencies = [
+    "pandas>=2.2.2",
+    "numpy>=1.26.3",
+    "scipy>=1.11.4",
+    "yfinance>=0.2.42",
+    "matplotlib>=3.9.1"
+]
+
 [project.urls]
 Homepage = "https://github.com/LuisMB09/vartools"
 Issues = "https://github.com/LuisMB09/vartools"
