@@ -23,6 +23,19 @@ pip install yfinance
 pip install matplotlib
 ```
 
+Then
+
+```bash
+pip install vartools
+```
+Also run
+
+```bash
+pip install --upgrade vartools
+```
+
+To get the latest version.
+
 ## Functions
 
 ### `get_data(stocks, start_date, end_date, type)`
