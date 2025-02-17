@@ -107,7 +107,14 @@ Calculates the number of shres to buy/sell to rebalance a **stock portfolio**..
 
 **Note:** It only works for long positions, and the weights must add up to 1.
 
+### `opt_sharpe(data, rf)``
 
+#### Parameters
+- **data** (*pd.DataFrame*): DataFrame containing historical stock prices.
+- **rf**: One-year risk-free rate
+
+#### Returns
+It returns a dataFrame with the optimal weight for each stock.
 
 ## Usage Example
 ```python
