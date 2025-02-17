@@ -246,7 +246,7 @@ conf = 95
 var_pct = vt.var_weights(data, weights, conf)
 ```
 
-## var_weights
+## cvar_weights
 ```python
 stocks = ["AAPL", "TSLA", "AMD", "LMT", "JPM"]
 start_date = "2020-01-01"
@@ -257,7 +257,7 @@ data = vt.get_data(stocks, start_date, end_date, type)
 
 weights = [0.2457, 0.1301, 0.1820, 0.3064, 0.1358]
 conf = 95
-cvar_pct = vt.var_weights(data, weights, conf)
+cvar_pct = vt.cvar_weights(data, weights, conf)
 ```
 
 
