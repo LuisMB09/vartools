@@ -133,12 +133,12 @@ start_date = "2020-01-01"
 end_date = "2024-12-02"
 type = 'Adj Close'
 
-data = vt.get_data(stocks, start_date, end_date, type)
+data = vt.get_data(currencies, start_date, end_date, type)
 positions = [7100000, 5300000] # How much you have in each currency. Must match the order in currencies.
 conf = 99 # Nivel de confianza
 long = True
 
-var_forex_df = var_forex(data, positions, conf, long, currencies)
+var_forex_df = vt.var_forex(data, positions, conf, long, currencies)
 ```
 
 ## rebalance_stocks
