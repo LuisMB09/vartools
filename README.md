@@ -248,6 +248,22 @@ returns = data.pct_change().dropna()
 optimal_weights_df = vt.min_variance(returns)
 ```
 
+## mcc_portfolio
+```python
+# bonds, commodities, equities and real estate
+stocks = ['VBTLX', 'GSG', 'VTI', 'VNQ']
+start_date = '2019-01-01'
+end_date = '2024-01-01'
+type = 'Adj Close'
+
+data = vt.get_data(stocks, start_date, end_date, type)
+returns = data.pct_change().dropna()
+alpha = 0.05
+
+mcc_weights = vt.mcc_portfolio(returns, alpha)
+```
+
+
 
 ## License
 This project is licensed under the GPL-3.0 license.
