@@ -141,6 +141,18 @@ It returns a dataFrame with the optimal weight for each stock.
 It returns a dataFrame with the optimal weight for each stock.
 
 
+### `min_cvar(returns, alpha)`
+
+#### Parameters:
+- returns (*pd.DataFrame*): DataFrame containing historical asset returns.
+- alpha (float): Significance level for CVaR (example: 0.05 for 95% confidence level).
+
+#### Returns:
+It returns a dataFrame with the optimal weight for each stock.
+
+**Note:** It is required to write alpha in decimal notation, also this portfolio strategy only works for long positions.
+
+
 ### `mcc_portfolio(returns, alpha)`
 
 #### Parameters:
@@ -150,7 +162,7 @@ It returns a dataFrame with the optimal weight for each stock.
 #### Returns:
 It returns a dataFrame with the optimal weight for each stock.
 
-**Note:** It is required to write alpha in decimal notation, also this portfolio strategie only works for long positions.
+**Note:** It is required to write alpha in decimal notation, also this portfolio strategy only works for long positions.
 
 ### `plot_weights(df)`
 
@@ -260,9 +272,6 @@ conf = 95
 cvar_pct = vt.cvar_weights(data, weights, conf)
 ```
 
-
-
-
 ## opt_sharpe
 ```python
 stocks=['WMT','AAPL','GOOGL','PG','XOM','KO','CMG','F']
@@ -290,6 +299,23 @@ returns = data.pct_change().dropna()
 optimal_weights_df = vt.min_variance(returns)
 ```
 
+
+## min_cvar
+```python
+# bonds, commodities, equities and real estate
+stocks = ['VBTLX', 'GSG', 'VTI', 'VNQ']
+start_date = '2019-01-01'
+end_date = '2024-01-01'
+type = 'Adj Close'
+
+data = vt.get_data(stocks, start_date, end_date, type)
+returns = data.pct_change().dropna()
+alpha = 0.05
+
+min_cvar_df = vt.min_cvar(returns, alpha)
+```
+
+
 ## mcc_portfolio
 ```python
 # bonds, commodities, equities and real estate
@@ -302,7 +328,7 @@ data = vt.get_data(stocks, start_date, end_date, type)
 returns = data.pct_change().dropna()
 alpha = 0.05
 
-mcc_weights = vt.mcc_portfolio(returns, alpha)
+mcc_weights_df = vt.mcc_portfolio(returns, alpha)
 ```
 
 ## plot_weights

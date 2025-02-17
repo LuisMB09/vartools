@@ -236,6 +236,45 @@ def min_variance(returns):
     return min_var_df
 
 
+def min_cvar(returns, alpha):
+
+    n_assets = len(returns.columns)
+
+    def portfolio_return(returns, weights):
+        return np.dot(returns, weights)
+
+    # Better way to calculate CVaR than the one used in my homework 1. I used .query in the homework, but checking with friends this way is better.
+    def cvar(portfolio_returns, alpha):
+        var = np.percentile(portfolio_returns, alpha*100)
+        cvar = -portfolio_returns[portfolio_returns < var].mean()
+        return cvar
+
+    def min_cvar(weights, returns, alpha):
+        portfolio_returns = portfolio_return(returns, weights)
+        return cvar(portfolio_returns, alpha)
+
+    constraints = [
+        {"type": "eq", "fun": lambda w: np.sum(w) - 1},
+    ]
+    bounds = tuple((0, 1) for _ in range(n_assets))
+
+    # Initial guess
+    initial_weights = np.ones(n_assets) / n_assets
+
+    result_min_cvar = minimize(
+        fun=min_cvar,
+        x0=initial_weights,
+        args=(returns, alpha),
+        method="SLSQP",
+        bounds=bounds,
+        constraints=constraints,
+        tol=1e-8
+    )
+    min_cvar_weights = result_min_cvar.x
+    min_cvar_df = pd.DataFrame(min_cvar_weights, index=returns.columns, columns=["w"])
+
+    return min_cvar_df
+
 
 def mcc_portfolio(returns, alpha):
     """
