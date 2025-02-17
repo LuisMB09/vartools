@@ -108,7 +108,7 @@ Calculates the number of shres to buy/sell to rebalance a **stock portfolio**..
 **Note:** It only works for long positions, and the weights must add up to 1.
 
 
-### `opt_sharpe(returns, rf)``
+### `opt_sharpe(returns, rf)`
 
 #### Parameters
 - **returns** (*pd.DataFrame*): DataFrame containing the daily returns of the stock prices.
@@ -118,7 +118,7 @@ Calculates the number of shres to buy/sell to rebalance a **stock portfolio**..
 It returns a dataFrame with the optimal weight for each stock.
 
 
-### `min_variance(returns, rf)``
+### `min_variance(returns, rf)`
 
 #### Parameters
 - **returns** (*pd.DataFrame*): DataFrame containing the daily returns of the stock prices.
