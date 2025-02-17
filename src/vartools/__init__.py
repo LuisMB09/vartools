@@ -129,3 +129,47 @@ def var_weights(data, weights, conf):
     var = np.percentile(portfolio_returns, 100-conf)
     cvar_pct = np.abs(portfolio_returns[portfolio_returns < var].mean())
     return np.abs(var), cvar_pct
+
+"""
+The sixth function is for obtaining the optimal weights of a portfolio to maximize the Sharpe Ratio
+It receives a dataframe with the prices of the stocks (data) and the risk-free rate (rf)
+"""
+
+def opt_sharpe(data, rf):
+    rt = data.pct_change().dropna()
+    mu = (rt.mean() * 252).values
+    sigma = rt.cov().values
+    n_assets = len(mu)
+
+    # Función para minimizar (-Sharpe Ratio)
+    def neg_sharpe_ratio(w, mu, sigma, rf):
+        port_return = np.dot(w, mu)
+        port_vol = np.sqrt(np.dot(w.T, np.dot(sigma, w))) * np.sqrt(252)
+        sharpe_ratio = (port_return - rf) / port_vol
+        return -sharpe_ratio
+    
+    # Restricciones: Suma de pesos = 1
+    constraints = ({
+        'type': 'eq',
+        'fun': lambda w: np.sum(w) - 1
+    })
+
+    # Límites: Pesos entre 0 y 1 (no posiciones cortas)
+    bounds = tuple((0, 1) for _ in range(n_assets))
+
+    # Pesos iniciales (distribuidos uniformemente)
+    w0 = np.array([1 / n_assets] * n_assets)
+
+    # Optimización
+    result = minimize(neg_sharpe_ratio, 
+            w0, 
+            args=(mu, sigma, rf), 
+            method='SLSQP', 
+            bounds=bounds, 
+            constraints=constraints)
+    
+    # Resultados
+    optimal_weights = result.x
+    w_opt_df = pd.DataFrame(optimal_weights, index=rt.columns, columns=['w'])
+
+    return w_opt_df.T
