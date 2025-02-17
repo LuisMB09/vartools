@@ -285,7 +285,7 @@ rf = 0.04413
 
 opt_sharpe_df = vt.opt_sharpe(returns, rf)
 
-vt.plot_weighst(opt_sharpe_df)
+vt.plot_weights(opt_sharpe_df)
 ```
 
 
