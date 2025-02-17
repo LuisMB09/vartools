@@ -270,3 +270,19 @@ def mcc_portfolio(returns, alpha):
     mcc_df = pd.DataFrame(mcc_weights, index=returns.columns, columns=['w'])
 
     return mcc_df.T
+
+def plot_weights(df):
+    """
+    It creates a pie chart with the weights of the portfolio
+    """
+    labels = df.columns
+    values = df.iloc[0, :]
+
+    plt.rcParams['figure.facecolor'] = 'lightgray'
+    cmap = plt.get_cmap("Blues")
+    custom_colors = cmap(np.linspace(0, 1, len(labels)))
+    
+    plt.figure(figsize=(8, 8))
+    plt.pie(values, labels=labels, autopct='%1.2f%%', startangle=90, colors=custom_colors)
+    plt.title("Portfolio Weights")
+    plt.show()

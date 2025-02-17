@@ -130,13 +130,22 @@ It returns a dataFrame with the optimal weight for each stock.
 ### `mcc_portfolio(returns, alpha)`
 
 #### Parameters:
-- returns (pd.DataFrame): DataFrame containing historical asset returns.
+- returns (*pd.DataFrame*): DataFrame containing historical asset returns.
 - alpha (float): Significance level for CVaR (example: 0.05 for 95% confidence level).
 
 #### Returns:
 It returns a dataFrame with the optimal weight for each stock.
 
 **Note:** It is required to write alpha in decimal notation, also this portfolio strategie only works for long positions.
+
+### `plot_weights(df)`
+
+#### Parameters
+- df (*pd.DataFrame*): DataFrame with the weights for each stock.
+
+#### Returns
+It creates a pie chart with the weights of the portfolio.
+
 
 
 ## Usage Example
@@ -263,6 +272,21 @@ alpha = 0.05
 mcc_weights = vt.mcc_portfolio(returns, alpha)
 ```
 
+## plot_weights
+```python
+stocks=['WMT','AAPL','GOOGL','PG','XOM','KO','CMG','F']
+start_date='2020-01-01'
+end_date='2024-11-24'
+type='Adj Close'
+
+data = vt.get_data(stocks, start_date, end_date, type)
+returns = data.pct_change().dropna()
+rf = 0.04413
+
+opt_sharpe_df = vt.opt_sharpe(returns, rf)
+
+vt.plot_weighst(opt_sharpe_df)
+```
 
 
 ## License
