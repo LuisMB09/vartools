@@ -18,7 +18,6 @@ Ensure you have the required dependencies installed:
 ```bash
 pip install scipy
 pip install numpy 
-pip install scipy
 pip install pandas
 pip install yfinance
 pip install matplotlib
