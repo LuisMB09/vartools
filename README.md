@@ -25,6 +25,18 @@ pip install matplotlib
 
 ## Functions
 
+### `get_data(stocks, start_date, end_date, type)`
+
+#### Parameters
+- **stocks** (*list*): List of stock tickers to download.
+- **start_date** (*str*): Start date in the format `YYYY-MM-DD`.
+- **end_date** (*str*): End date in the format `YYYY-MM-DD`.
+- **type** (*str*): Type of price to retrieve (e.g., `"Adj Close"`, `"Close"`).
+
+#### Returns
+- **pd.DataFrame**: A DataFrame containing the selected price type for the specified stocks.
+
+
 ### `var_stocks(data, n_stocks, conf, long, stocks)`
 Calculates the **VaR** and **cVaR** for a stock portfolio.
 
@@ -41,6 +53,7 @@ A DataFrame with the following columns:
 - **Porcentaje**: The percentage value of risk.
 - **Cash**: The risk in monetary terms.
 
+
 ### `var_forex(data, positions, conf, long, currencies)`
 Calculates the **VaR** and **cVaR** for a forex portfolio.
 
@@ -56,6 +69,7 @@ A DataFrame with the following columns:
 - **Métrica**: "VaR" and "cVaR".
 - **Porcentual**: The percentage value of risk.
 - **Cash**: The risk in monetary terms.
+
 
 ### `rebalance_stocks(w_original, target_weights, data, stocks, portfolio_value)`
 Calculates the number of shres to buy/sell to rebalance a **stock portfolio**..
@@ -86,47 +100,55 @@ start_date = "2020-01-01"
 end_date = "2023-01-01"
 type = 'Adj Close' # 'Close', select the type of price you want to download
 
-def get_data(stocks, start_date, end_date, type):
-    data=yf.download(stocks, start=start_date, end=end_date)[type][stocks]
-    return data
+data = vt.get_data(stocks, start_date, end_date, type)
 ```
 
+## var_stocks
+```python
+stocks = ["AAPL", "TSLA", "AMD", "LMT", "JPM"]
+start_date = "2020-01-01"
+end_date = "2023-01-01"
+type = 'Adj Close' # 'Close', select the type of price you want to download
 
-# Example data
-stock_data = pd.DataFrame({...})  # Stock price data, you can use yfinance
-tickers = ['AAPL', 'GOOGL', 'MSFT']
-# Make sure that columns coincide with de tickers order
-stock_data = stock_data[tickers]
-n_shares = [10, 5, 8]
-confidence = 95
-is_long = True
+data = vt.get_data(stocks, start_date, end_date, type)
+n_stocks =[2193, 1211, 3221, 761, 1231]
+conf = 95
+long = True
 
-# Calculate stock portfolio VaR
-stock_var = var_stocks(stock_data, tickers, n_shares, confidence, is_long)
-print(stock_var)
+var_df = vt.var_stocks(data, n_stocks, conf, long, stocks)
+```
 
-# Example forex data
-forex_data = pd.DataFrame({...})  # Forex currency pair data, you can use yfinance
-currency_pairs = ['EUR/USD', 'GBP/USD']
-# Make sure that columns coincide with de tickers order
-forex_data = forex_data[currency_pairs]
-positions = [10000, 5000]
+## var_forex
+```python
+currencies = ['CHFMXN=X', 'MXN=X']
+start_date = "2020-01-01"
+end_date = "2024-12-02"
+type = 'Adj Close'
 
-# Calculate forex portfolio VaR
-forex_var = var_forex(forex_data, currency_pairs, positions, confidence, is_long)
-print(forex_var)
+data = vt.get_data(stocks, start_date, end_date, type)
+positions = [7100000, 5300000] # How much you have in each currency. Must match the order in currencies.
+conf = 99 # Nivel de confianza
+long = True
 
-# Rebalance your portfolio
-w_original = np.array([0.4, 0.3, 0.3])
-target_weights = np.array([0.5, 0.25, 0.25])
-data = pd.DataFrame({...})  # Stock price data
-stocks = ["AAPL", "MSFT", "GOOGL"]
-# Make sure that columns coincide with de tickers order
-data = data[stocks]
-portfolio_value = 100000
+var_forex_df = var_forex(data, positions, conf, long, currencies)
+```
 
-rebalance_df = rebalance_stocks(w_original, target_weights, data, stocks, portfolio_value)
-print(rebalance_df)
+## rebalance_stocks
+```python
+stocks = ["AAPL", "TSLA", "AMD", "LMT", "JPM"]
+start_date = "2020-01-01"
+end_date = "2023-01-01"
+type = 'Adj Close' # 'Close', select the type of price you want to download
+
+data = vt.get_data(stocks, start_date, end_date, type)
+
+rt = data.pct_change().dropna()
+stock_value = n_stocks * data.iloc[-1]
+portfolio_value = stock_value.sum()
+w_original = stock_value / portfolio_value
+w_opt = [0.33, 0.15, 0.06, 0.46, 0.00]
+
+vt.rebalance_stocks(w_original, w_opt, data, stocks, portfolio_value)
 ```
 
 ## License
