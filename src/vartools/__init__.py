@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import yfinance as yf
 pd.set_option('display.float_format', '{:,.4f}'.format)
 
 """
@@ -103,3 +104,12 @@ def rebalance_stocks(w_original, target_weights, data, stocks, portfolio_value):
     "Acciones (C/V)" : np.floor((target_weights-w_original) * portfolio_value / data.iloc[-1])
     })
     return w_df.T
+
+"""
+The fourth function is for obtaining the stock price
+It is done in a way that the order of the columns is the same as the order of the stocks
+"""
+
+def get_data(stocks, start_date, end_date, type):
+    data=yf.download(stocks, start=start_date, end=end_date)[type][stocks]
+    return data

@@ -73,9 +73,24 @@ Calculates the number of shres to buy/sell to rebalance a **stock portfolio**..
 
 ## Usage Example
 ```python
-import pandas as pd
 import numpy as np
+import pandas as pd
+import yfinance as yf
 import vartools as vt
+```
+
+## get_data
+```python
+stocks = ["AAPL", "TSLA", "AMD", "LMT", "JPM"]
+start_date = "2020-01-01"
+end_date = "2023-01-01"
+type = 'Adj Close' # 'Close', select the type of price you want to download
+
+def get_data(stocks, start_date, end_date, type):
+    data=yf.download(stocks, start=start_date, end=end_date)[type][stocks]
+    return data
+```
+
 
 # Example data
 stock_data = pd.DataFrame({...})  # Stock price data, you can use yfinance
