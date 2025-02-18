@@ -142,7 +142,7 @@ Calculates the number of shres to buy/sell to rebalance a **stock portfolio**..
 - **rf**: One-year risk-free rate
 
 #### Returns
-It returns a dataFrame with the optimal weight for each stock.
+It returns a vector with the optimal weight for each stock.
 
 
 ### `min_variance(returns, rf)`
@@ -151,7 +151,7 @@ It returns a dataFrame with the optimal weight for each stock.
 - **returns** (*pd.DataFrame*): DataFrame containing the daily returns of the stock prices.
 
 #### Returns
-It returns a dataFrame with the optimal weight for each stock.
+It returns a vector with the optimal weight for each stock.
 
 
 ### `min_cvar(returns, alpha)`
@@ -161,7 +161,7 @@ It returns a dataFrame with the optimal weight for each stock.
 - alpha (float): Significance level for CVaR (example: 0.05 for 95% confidence level).
 
 #### Returns:
-It returns a dataFrame with the optimal weight for each stock.
+It returns a vector with the optimal weight for each stock.
 
 **Note:** It is required to write alpha in decimal notation, also this portfolio strategy only works for long positions.
 
@@ -173,7 +173,7 @@ It returns a dataFrame with the optimal weight for each stock.
 - alpha (float): Significance level for CVaR (example: 0.05 for 95% confidence level).
 
 #### Returns:
-It returns a dataFrame with the optimal weight for each stock.
+It returns a vector with the optimal weight for each stock.
 
 **Note:** It is required to write alpha in decimal notation, also this portfolio strategy only works for long positions.
 
@@ -311,7 +311,7 @@ data = vt.get_data(stocks, start_date, end_date, type)
 returns = data.pct_change().dropna()
 rf = 0.04413
 
-optimal_weights_df = vt.opt_sharpe(returns, rf)
+opt_sharpe_weights = vt.opt_sharpe(returns, rf)
 ```
 
 ## min_variance
@@ -324,7 +324,7 @@ type='Adj Close'
 data = vt.get_data(stocks, start_date, end_date, type)
 returns = data.pct_change().dropna()
 
-optimal_weights_df = vt.min_variance(returns)
+min_var_weights = vt.min_variance(returns)
 ```
 
 
@@ -340,7 +340,7 @@ data = vt.get_data(stocks, start_date, end_date, type)
 returns = data.pct_change().dropna()
 alpha = 0.05
 
-min_cvar_df = vt.min_cvar(returns, alpha)
+min_cvar = vt.min_cvar(returns, alpha)
 ```
 
 
@@ -356,7 +356,7 @@ data = vt.get_data(stocks, start_date, end_date, type)
 returns = data.pct_change().dropna()
 alpha = 0.05
 
-mcc_weights_df = vt.mcc_portfolio(returns, alpha)
+mcc_weights = vt.mcc_portfolio(returns, alpha)
 ```
 
 ## cvar_contributions
@@ -389,9 +389,9 @@ data = vt.get_data(stocks, start_date, end_date, type)
 returns = data.pct_change().dropna()
 rf = 0.04413
 
-opt_sharpe_df = vt.opt_sharpe(returns, rf)
+opt_sharpe = vt.opt_sharpe(returns, rf)
 
-vt.plot_weights(opt_sharpe_df)
+vt.plot_weights(stocks, opt_sharpe)
 ```
 
 

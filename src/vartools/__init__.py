@@ -187,10 +187,9 @@ def opt_sharpe(returns, rf):
             constraints=constraints)
     
     # Resultados
-    optimal_weights = result.x
-    w_opt_df = pd.DataFrame(optimal_weights, index=returns.columns, columns=['w'])
+    w_opt_sharpe = result.x
 
-    return w_opt_df
+    return w_opt_sharpe
 
 
 
@@ -231,9 +230,8 @@ def min_variance(returns):
     
     # Resultados
     min_var_weights = result.x
-    min_var_df = pd.DataFrame(min_var_weights, index=returns.columns, columns=['w'])
 
-    return min_var_df
+    return min_var_weights
 
 
 def min_cvar(returns, alpha):
@@ -271,9 +269,8 @@ def min_cvar(returns, alpha):
         tol=1e-8
     )
     min_cvar_weights = result_min_cvar.x
-    min_cvar_df = pd.DataFrame(min_cvar_weights, index=returns.columns, columns=["w"])
 
-    return min_cvar_df
+    return min_cvar_weights
 
 
 def mcc_portfolio(returns, alpha):
@@ -320,9 +317,8 @@ def mcc_portfolio(returns, alpha):
         tol=1e-8
     )
     mcc_weights = result.x
-    mcc_df = pd.DataFrame(mcc_weights, index=returns.columns, columns=['w'])
 
-    return mcc_df
+    return mcc_weights
 
 
 def cvar_contributions(weights, returns, alpha):
@@ -366,10 +362,11 @@ def cvar_contributions(weights, returns, alpha):
     return contributions
 
 
-def plot_weights(df):
+def plot_weights(stocks, weights):
     """
     It creates a pie chart with the weights of the portfolio
     """
+    df = pd.DataFrame(weights, index=stocks, columns=['w'])
     filtered_df = df[df['w'] > 0.000001]
     labels = filtered_df.index
     values = filtered_df.iloc[: , 0]
