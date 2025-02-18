@@ -371,10 +371,9 @@ data = vt.get_data(stocks, start_date, end_date, type)
 returns = data.pct_change().dropna()
 alpha = 0.05
 
-mcc_weights_df = vt.mcc_portfolio(returns, alpha)
-w = mcc_weights_df['w'].values
+mcc_weights = vt.mcc_portfolio(returns, alpha)
 
-cvar_contributions = vt.cvar_contributions(w, returns, alpha)
+cvar_contributions = vt.cvar_contributions(mcc_weights, returns, alpha)
 ```
 
 
