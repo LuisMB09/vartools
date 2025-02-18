@@ -56,7 +56,7 @@ stocks = ["AAPL", "TSLA", "AMD", "LMT", "JPM"]
 data=yf.download(stocks, start="2020-01-01", end="2023-01-01")['Adj Close'][stocks]
 ```
 
-Also if you get the data from an excel or csv file create the list `stocks` or `currencies`with the name of the columns in your file for correct functioning.
+Also if you get the data from an excel or csv file create the list `stocks` or `currencies`with the name of the columns in your file for correct functioning. Also make sure to establish yor `Date`column as index.
 
 ### `var_stocks(data, n_stocks, conf, long, stocks)`
 Calculates the **VaR** and **cVaR** for a stock portfolio.
