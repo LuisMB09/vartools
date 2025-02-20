@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import yfinance as yf
+from scipy.stats import norm
 import matplotlib.pyplot as plt
 from scipy.optimize import minimize
 pd.set_option('display.float_format', '{:,.4f}'.format)
@@ -379,3 +380,45 @@ def plot_weights(stocks, weights):
     plt.pie(values, labels=labels, autopct='%1.2f%%', startangle=90, colors=custom_colors)
     plt.title("Portfolio Weights")
     plt.show()
+
+class BlackScholes:
+    def __init__(self, S, k, r, sigma, T):
+        """
+        Initialize the Black-Scholes model parameters.
+        :param S: Current stock price
+        :param k: Strike price
+        :param r: Risk-free rate
+        :param sigma: Volatility of the asset
+        :param T: Time to expiration (in years)
+        """
+        self.S = S
+        self.k = k
+        self.r = r
+        self.sigma = sigma
+        self.T = T
+        self.d1 = self._calculate_d1()
+
+    def _calculate_d1(self):
+        """
+        Compute the d1 term in the Black-Scholes formula.
+        """
+        return (np.log(self.S / self.k) + (self.r + 0.5 * self.sigma ** 2) * self.T) / (self.sigma * np.sqrt(self.T))
+
+    # Deltas
+    def call_delta(self):
+        return norm.cdf(self.d1)
+
+    def put_delta(self):
+        return np.abs(norm.cdf(self.d1) - 1)
+
+    # Hedge
+    def delta_hedge(self, info_call, info_put):
+
+        # Dataframe for call and put options
+        df_call = pd.DataFrame(info_call, columns=['S', 'K', 'r', 'sigma', 'T', 'N'])
+        df_put = pd.DataFrame(info_put, columns=['S', 'K', 'r', 'sigma', 'T', 'N'])
+
+        df_call['delta'] = df_call.apply(lambda row: BlackScholes(*row[0:-1]).call_delta(), axis=1)
+        df_put['delta'] = df_put.apply(lambda row: BlackScholes(*row[0:-1]).put_delta(), axis=1)
+            
+        return np.dot(df_call['N'], df_call['delta']) - np.dot(df_put['N'], df_put['delta'])
