@@ -53,7 +53,7 @@ To get the latest version.
 
 ```python
 stocks = ["AAPL", "TSLA", "AMD", "LMT", "JPM"]
-data=yf.download(stocks, start="2020-01-01", end="2023-01-01")['Adj Close'][stocks]
+data=yf.download(stocks, start="2020-01-01", end="2023-01-01")['Close'][stocks]
 ```
 
 Also if you get the data from an excel or csv file create the list `stocks` or `currencies`with the name of the columns in your file for correct functioning. Also make sure to establish yor `Date`column as index.
@@ -219,7 +219,7 @@ from scipy.optimize import minimize
 stocks = ["AAPL", "TSLA", "AMD", "LMT", "JPM"]
 start_date = "2020-01-01"
 end_date = "2023-01-01"
-type = 'Adj Close' # 'Close', select the type of price you want to download
+type = 'Close' # 'Close', select the type of price you want to download
 
 data = vt.get_data(stocks, start_date, end_date, type)
 ```
@@ -229,7 +229,7 @@ data = vt.get_data(stocks, start_date, end_date, type)
 stocks = ["AAPL", "TSLA", "AMD", "LMT", "JPM"]
 start_date = "2020-01-01"
 end_date = "2023-01-01"
-type = 'Adj Close' # 'Close', select the type of price you want to download
+type = 'Close' # 'Close', select the type of price you want to download
 
 data = vt.get_data(stocks, start_date, end_date, type)
 n_stocks =[2193, 1211, 3221, 761, 1231]
@@ -244,7 +244,7 @@ var_df = vt.var_stocks(data, n_stocks, conf, long, stocks)
 currencies = ['CHFMXN=X', 'MXN=X']
 start_date = "2020-01-01"
 end_date = "2024-12-02"
-type = 'Adj Close'
+type = 'Close'
 
 data = vt.get_data(currencies, start_date, end_date, type)
 positions = [7100000, 5300000] # How much you have in each currency. Must match the order in currencies.
@@ -259,7 +259,7 @@ var_forex_df = vt.var_forex(data, positions, conf, long, currencies)
 stocks = ["AAPL", "TSLA", "AMD", "LMT", "JPM"]
 start_date = "2020-01-01"
 end_date = "2023-01-01"
-type = 'Adj Close' # 'Close', select the type of price you want to download
+type = 'Close' # 'Close', select the type of price you want to download
 
 data = vt.get_data(stocks, start_date, end_date, type)
 
@@ -277,7 +277,7 @@ rebalance_df = vt.rebalance_stocks(w_original, w_opt, data, stocks, portfolio_va
 stocks = ["AAPL", "TSLA", "AMD", "LMT", "JPM"]
 start_date = "2020-01-01"
 end_date = "2023-01-01"
-type = 'Adj Close' # 'Close', select the type of price you want to download
+type = 'Close' # 'Close', select the type of price you want to download
 
 data = vt.get_data(stocks, start_date, end_date, type)
 
@@ -291,7 +291,7 @@ var_pct = vt.var_weights(data, weights, conf)
 stocks = ["AAPL", "TSLA", "AMD", "LMT", "JPM"]
 start_date = "2020-01-01"
 end_date = "2023-01-01"
-type = 'Adj Close' # 'Close', select the type of price you want to download
+type = 'Close' # 'Close', select the type of price you want to download
 
 data = vt.get_data(stocks, start_date, end_date, type)
 
@@ -305,7 +305,7 @@ cvar_pct = vt.cvar_weights(data, weights, conf)
 stocks=['WMT','AAPL','GOOGL','PG','XOM','KO','CMG','F']
 start_date='2020-01-01'
 end_date='2024-11-24'
-type='Adj Close'
+type='Close'
 
 data = vt.get_data(stocks, start_date, end_date, type)
 returns = data.pct_change().dropna()
@@ -319,7 +319,7 @@ opt_sharpe_weights = vt.opt_sharpe(returns, rf)
 stocks=['WMT','AAPL','GOOGL','PG','XOM','KO','CMG','F']
 start_date='2020-01-01'
 end_date='2024-11-24'
-type='Adj Close'
+type='Close'
 
 data = vt.get_data(stocks, start_date, end_date, type)
 returns = data.pct_change().dropna()
@@ -334,7 +334,7 @@ min_var_weights = vt.min_variance(returns)
 stocks = ['VBTLX', 'GSG', 'VTI', 'VNQ']
 start_date = '2019-01-01'
 end_date = '2024-01-01'
-type = 'Adj Close'
+type = 'Close'
 
 data = vt.get_data(stocks, start_date, end_date, type)
 returns = data.pct_change().dropna()
@@ -350,7 +350,7 @@ min_cvar = vt.min_cvar(returns, alpha)
 stocks = ['VBTLX', 'GSG', 'VTI', 'VNQ']
 start_date = '2019-01-01'
 end_date = '2024-01-01'
-type = 'Adj Close'
+type = 'Close'
 
 data = vt.get_data(stocks, start_date, end_date, type)
 returns = data.pct_change().dropna()
@@ -365,7 +365,7 @@ mcc_weights = vt.mcc_portfolio(returns, alpha)
 stocks = ['VBTLX', 'GSG', 'VTI', 'VNQ']
 start_date = '2019-01-01'
 end_date = '2024-01-01'
-type = 'Adj Close'
+type = 'Close'
 
 data = vt.get_data(stocks, start_date, end_date, type)
 returns = data.pct_change().dropna()
@@ -382,7 +382,7 @@ cvar_contributions = vt.cvar_contributions(mcc_weights, returns, alpha)
 stocks=['WMT','AAPL','GOOGL','PG','XOM','KO','CMG','F']
 start_date='2020-01-01'
 end_date='2024-11-24'
-type='Adj Close'
+type='Close'
 
 data = vt.get_data(stocks, start_date, end_date, type)
 returns = data.pct_change().dropna()
