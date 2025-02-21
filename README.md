@@ -421,8 +421,8 @@ r_put = 0.0425
 sigma_put = 0.156
 T_put = 1/12
 
-delta_call = vt.BlackScholes(S_call, K_call, r_call, sigma_call, T_call).call_delta()
-delta_put = vt.BlackScholes(S_put, K_put, r_put, sigma_put, T_put).put_delta()
+delta_call = vt.BlackScholes().call_delta(S_call, K_call, r_call, sigma_call, T_call)
+delta_put = vt.BlackScholes().put_delta(S_put, K_put, r_put, sigma_put, T_put)
 
 delta_call, delta_put
 ```
@@ -433,8 +433,8 @@ delta_call, delta_put
 call = [20.3, 20.43, 0.0425, 0.102, 1/12]
 put = [20.3, 20.2, 0.0425, 0.156, 1/12]
 
-delta_call = vt.BlackScholes(*call).call_delta()
-delta_put = vt.BlackScholes(*put).put_delta()
+delta_call = vt.BlackScholes().call_delta(*call)
+delta_put = vt.BlackScholes().put_delta(*put)
 
 delta_call, delta_put
 ```
@@ -455,8 +455,7 @@ info_put = [[20.3, 20.2, 0.0425, 0.156, 1/12, 12],
             [20.3, 20, 0.0421, 0.378, 6/12, 17]]
 
 # If N is in millions of dollar, then
-# Params for BlackScholes should be 5, but the value is irrelevant.
-hedge = vt.BlackScholes(1,1,1,1,1).delta_hedge(info_call, info_put)
+hedge = vt.BlackScholes().delta_hedge(info_call, info_put)
 print(f'Buy {hedge} millions of dollars of the underlying asset')
 ```
 
