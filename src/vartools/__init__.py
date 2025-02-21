@@ -382,34 +382,20 @@ def plot_weights(stocks, weights):
     plt.show()
 
 class BlackScholes:
-    def __init__(self, S, k, r, sigma, T):
+    def __init__(self):
         """
-        Initialize the Black-Scholes model parameters.
-        :param S: Current stock price
-        :param k: Strike price
-        :param r: Risk-free rate
-        :param sigma: Volatility of the asset
-        :param T: Time to expiration (in years)
+        Initialize the Black-Scholes model.
         """
-        self.S = S
-        self.k = k
-        self.r = r
-        self.sigma = sigma
-        self.T = T
-        self.d1 = self._calculate_d1()
 
-    def _calculate_d1(self):
-        """
-        Compute the d1 term in the Black-Scholes formula.
-        """
-        return (np.log(self.S / self.k) + (self.r + 0.5 * self.sigma ** 2) * self.T) / (self.sigma * np.sqrt(self.T))
+    def _calculate_d1(self, S, k, r, sigma, T):
+        return (np.log(S / k) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
 
     # Deltas
-    def call_delta(self):
-        return norm.cdf(self.d1)
+    def call_delta(self, S, k, r, sigma, T):
+        return norm.cdf(self._calculate_d1(S, k, r, sigma, T))
 
-    def put_delta(self):
-        return np.abs(norm.cdf(self.d1) - 1)
+    def put_delta(self, S, k, r, sigma, T):
+        return np.abs(norm.cdf(self._calculate_d1(S, k, r, sigma, T)) - 1)
 
     # Hedge
     def delta_hedge(self, info_call, info_put):
@@ -418,7 +404,7 @@ class BlackScholes:
         df_call = pd.DataFrame(info_call, columns=['S', 'K', 'r', 'sigma', 'T', 'N'])
         df_put = pd.DataFrame(info_put, columns=['S', 'K', 'r', 'sigma', 'T', 'N'])
 
-        df_call['delta'] = df_call.apply(lambda row: BlackScholes(*row[0:-1]).call_delta(), axis=1)
-        df_put['delta'] = df_put.apply(lambda row: BlackScholes(*row[0:-1]).put_delta(), axis=1)
+        df_call['delta'] = df_call.apply(lambda row: BlackScholes().call_delta(*row[0:-1]), axis=1)
+        df_put['delta'] = df_put.apply(lambda row: BlackScholes().put_delta(*row[0:-1]), axis=1)
             
         return np.dot(df_call['N'], df_call['delta']) - np.dot(df_put['N'], df_put['delta'])
