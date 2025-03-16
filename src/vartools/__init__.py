@@ -191,7 +191,7 @@ def get_data(stocks: str | list, start_date: str, end_date: str, type: str = 'Cl
 
 
 
-def var_weights(data: pd.DataFrame, weights: list | np.array, conf: int | float) -> float:
+def var_weights(data: pd.DataFrame, weights: list | np.ndarray, conf: int | float) -> float:
     """
     A function to calculate the Value at Risk (VaR) for a portfolio of stocks.
 
@@ -199,7 +199,7 @@ def var_weights(data: pd.DataFrame, weights: list | np.array, conf: int | float)
     -----------
     data : pd.DataFrame
         A DataFrame containing historical stock prices, indexed by date.
-    weights : list | np.array
+    weights : list | np.ndarray
         A list of weights for the portfolio.
     conf : int | float
         The confidence level for the VaR calculation (e.g., 95 for 95% confidence).
@@ -217,7 +217,7 @@ def var_weights(data: pd.DataFrame, weights: list | np.array, conf: int | float)
     return np.abs(var)
 
 
-def cvar_weights(data: pd.DataFrame, weights: list | np.array, conf: int | float) -> float:
+def cvar_weights(data: pd.DataFrame, weights: list | np.ndarray, conf: int | float) -> float:
     """
     A function to calculate the Conditional Value at Risk (CVaR) for a portfolio of stocks.
 
@@ -225,7 +225,7 @@ def cvar_weights(data: pd.DataFrame, weights: list | np.array, conf: int | float
     -----------
     data : pd.DataFrame
         A DataFrame containing historical stock prices, indexed by date.
-    weights : list | np.array
+    weights : list | np.ndarray
         A list of weights for the portfolio.
     conf : int | float
         The confidence level for the CVaR calculation (e.g., 95 for 95% confidence).
@@ -306,7 +306,6 @@ def min_variance(returns: pd.DataFrame) -> np.array:
 
     # Función para minimizar (-Sharpe Ratio)
     def min_var(w, mu, sigma):
-        port_return = np.dot(w, mu)
         port_vol = np.sqrt(np.dot(w.T, np.dot(sigma, w))) * np.sqrt(252)
         return port_vol
     
@@ -442,13 +441,13 @@ def mcc_portfolio(returns: pd.DataFrame, alpha: float) -> np.array:
     return mcc_weights
 
 
-def cvar_contributions(weights: list | np.array, returns: pd.DataFrame, alpha: float) -> list:
+def cvar_contributions(weights: list | np.ndarray, returns: pd.DataFrame, alpha: float) -> list:
     """
     A function to calculate the CVaR contributions of each asset in a portfolio.
 
     Parameters:
     -----------
-    weights : list | np.array
+    weights : list | np.ndarray
         A list of weights for the portfolio.
     returns : pd.DataFrame
         A DataFrame containing the returns of the assets in the portfolio.
@@ -485,7 +484,7 @@ def cvar_contributions(weights: list | np.array, returns: pd.DataFrame, alpha: f
     return contributions
 
 
-def plot_weights(stocks: list, weights: list | np.array):
+def plot_weights(stocks: list, weights: list | np.ndarray):
     """
     A function to plot the weights of a portfolio.
 
@@ -493,7 +492,7 @@ def plot_weights(stocks: list, weights: list | np.array):
     -----------
     stocks : list
         A list of stock tickers.
-    weights : list | np.array
+    weights : list | np.ndarray
         A list of weights for the portfolio
 
     Returns:
