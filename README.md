@@ -45,12 +45,16 @@ A function to download stock data from Yahoo Finance.
 #### Parameters
 -----------
 - **stocks** : str | list
+
     The stock tickers to download.
 - **start_date** : str
+
     The start date for the data in the format `YYYY-MM-DD`.
 - **end_date** : str
+
     The end date for the data in the format `YYYY-MM-DD`.
 - **type** : str
+
     The type of data to download (e.g., `"Close"`).
 
 #### Returns
