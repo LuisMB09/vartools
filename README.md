@@ -92,7 +92,7 @@ Calculate the Value at Risk (VaR) and Conditional Value at Risk (CVaR) for a por
     Indicates the position type:
     - 1 (True) for long positions
     - 0 (False) for short positions
-    
+
 - **stocks** : list
 
     A list of column names representing the stocks to be included in the portfolio.
@@ -102,40 +102,43 @@ Calculate the Value at Risk (VaR) and Conditional Value at Risk (CVaR) for a por
 var_stocks_df : pd.DataFrame
 
     A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
-Calculates the **VaR** and **cVaR** for a stock portfolio.
-
-#### Parameters:
-- `data` (*pd.DataFrame*): DataFrame containing stock prices.
-- `stocks` (*list*): List of stock tickers.
-- `n_stocks` (*list*): Number of stocks per ticker.
-- `conf` (*float*): Confidence level (e.g., 95 for 95%).
-- `long` (*bool*): `True` for long position, `False` for short position.
-
-#### Returns:
-A DataFrame with the following columns:
-- **Métrica**: "VaR" and "cVaR".
-- **Porcentaje**: The percentage value of risk.
-- **Cash**: The risk in monetary terms.
 
 **Note:** Utilize this function when you have the number of shares of each stock instead of the weights, also `n_stocks` and `stocks` must coincide in lenght and order.
 
 
 
 ### `var_forex(data, positions, conf, long, currencies)`
-Calculates the **VaR** and **cVaR** for a forex portfolio.
+
+Calculate the Value at Risk (VaR) and Conditional Value at Risk (CVaR) for a portfolio of currencies.
 
 #### Parameters:
-- `data` (*pd.DataFrame*): DataFrame containing forex currency pair prices.
-- `currencies` (*list*): List of currency pairs.
-- `positions` (*list*): Number of units per currency pair.
-- `conf` (*float*): Confidence level (e.g., 95 for 95%).
-- `long` (*bool*): `True` for long position, `False` for short position.
+-----------
+- **data** : pd.DataFrame
+
+    A DataFrame containing historical exchange rates, indexed by date.
+- **positions** : list
+
+    A list of positions for each currency.
+- **conf** : int | float
+
+    The confidence level for the VaR calculation (e.g., 95 for 95% confidence).
+- **long** : bool
+
+    Indicates the position type:
+    - 1 (True) for long positions
+    - 0 (False) for short positions
+
+- **currencies** : list
+
+    A list of column names representing the currencies to be included in the portfolio.
 
 #### Returns:
-A DataFrame with the following columns:
-- **Métrica**: "VaR" and "cVaR".
-- **Porcentual**: The percentage value of risk.
-- **Cash**: The risk in monetary terms.
+--------
+var_df : pd.DataFrame
+
+    A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
+
+**Note:** n_stocks and stocks must coincide in lenght and order.
 
 
 ### `rebalance_stocks(w_original, target_weights, data, stocks, portfolio_value)`
