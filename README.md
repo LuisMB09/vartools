@@ -71,6 +71,7 @@ data=yf.download(stocks, start="2020-01-01", end="2023-01-01")['Close'][stocks]
 ```
 
 Also if you get the data from an excel or csv file create the list `stocks` or `currencies`with the name of the columns in your file for correct functioning. Also make sure to establish yor `Date`column as index.
+
 --------
 
 
@@ -106,6 +107,7 @@ A list of column names representing the stocks to be included in the portfolio.
 A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
 
 **Note:** Utilize this function when you have the number of shares of each stock instead of the weights, also `n_stocks` and `stocks` must coincide in lenght and order.
+
 --------
 
 
@@ -141,6 +143,7 @@ Calculate the Value at Risk (VaR) and Conditional Value at Risk (CVaR) for a por
 A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
 
 **Note:** n_stocks and stocks must coincide in lenght and order.
+
 --------
 
 
@@ -172,6 +175,8 @@ Rebalance a portfolio of stocks to achieve target weights.
 
 A DataFrame containing the original and target weights, as well as the number of shares to buy/sell.
 
+--------
+
 
 ### `var_weights(data, weights, conf)`
 
@@ -196,6 +201,8 @@ A function to calculate the Value at Risk (VaR) for a portfolio of stocks.
 The VaR value for the portfolio.
 
 **Note:** It only works for long positions, and the weights must add up to 1.
+
+--------
 
 
 ### `cvar_weights(data, weights, conf)`
