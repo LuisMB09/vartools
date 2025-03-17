@@ -61,7 +61,7 @@ A function to download stock data from Yahoo Finance.
 --------
 **data** : `pd.DataFrame`
 
-    A DataFrame containing the stock data.
+A DataFrame containing the stock data.
 
 **Note:** If you prefer to directly download the data from yfinance it is encouraged a format like this:
 
