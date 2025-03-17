@@ -47,7 +47,7 @@ def var_stocks(data: pd.DataFrame, n_stocks: list, conf: int | float, long: bool
     var_pct = np.percentile(portfolio_return, 100-conf) if long else np.percentile(portfolio_return, conf)
     cvar_pct = np.abs(portfolio_return[portfolio_return < var_pct].mean()) if long else portfolio_return[portfolio_return > var_pct].mean()
 
-    var_cash, cvar_cash = portfolio_value * var_pct, portfolio_value * cvar_pct
+    var_cash, cvar_cash = np.abs(portfolio_value * var_pct), portfolio_value * cvar_pct
 
     var_stocks_df = pd.DataFrame({
         "Métrica": ["VaR", "cVaR"],
@@ -97,7 +97,7 @@ def var_forex(data: pd.DataFrame, positions: list, conf: int | float, long: bool
     var_porcentual = np.percentile(portfolio_return, 100-conf) if long else np.percentile(portfolio_return, conf)
     cvar_porcentual = np.abs(portfolio_return[portfolio_return < var_porcentual].mean()) if long else portfolio_return[portfolio_return > var_porcentual].mean()
 
-    var_cash, cvar_cash = port['total'].iloc[-1] * var_porcentual, port['total'].iloc[-1] * cvar_porcentual
+    var_cash, cvar_cash = np.abs(port['total'].iloc[-1] * var_porcentual), port['total'].iloc[-1] * cvar_porcentual
 
     var_df = pd.DataFrame({
         "Métrica": ["VaR", "cVaR"],
@@ -282,7 +282,7 @@ def min_variance(returns: pd.DataFrame) -> np.array:
     n_assets = len(mu)
 
     # Función para minimizar (-Sharpe Ratio)
-    def min_var(w, mu, sigma):
+    def min_var(w, sigma):
         port_vol = np.sqrt(np.dot(w.T, np.dot(sigma, w))) * np.sqrt(252)
         return port_vol
     
@@ -618,3 +618,88 @@ class BlackScholes:
         df_put['delta'] = df_put.apply(lambda row: BlackScholes().put_delta(*row[0:-1]), axis=1)
             
         return np.dot(df_call['N'], df_call['delta']) - np.dot(df_put['N'], df_put['delta'])
+
+def var_apl(data: pd.DataFrame, posiciones: list | np.ndarray, conf: float, long: bool):
+    """ 
+    A function that calculates the Value at Risk (VaR) and Conditional Value at Risk (CVaR) adjusted by liquidity cost for a portfolio.
+
+    Parameters:
+    -----------
+    data : pd.DataFrame
+        A DataFrame containing historical exchange rates, indexed by date.
+    posiciones : list | np.ndarray
+        A list of positions for each currency.
+    conf : float
+        The confidence level for the VaR calculation (e.g., 95 for 95% confidence).
+    long : bool
+        Indicates the position type:
+        - 1 for long positions
+        - 0 for short positions
+
+    Returns:
+    --------
+    resultados : pd.DataFrame
+        A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
+    """
+
+    data = data.sort_index()
+
+    # Bid y Ask
+    bid_columns = [col for col in data.columns if 'Bid' in col] # Selecciona las columnas que contienen 'Bid'
+    ask_columns = [col for col in data.columns if 'Ask' in col] # Selecciona las columnas que contienen 'Ask'
+
+    # Mid
+    mid_columns = [f'Mid.{i}' for i in range(len(bid_columns))] # Se crea una lista con los nombres de las columnas de Mid
+    data[mid_columns] = (data[bid_columns].values + data[ask_columns].values) / 2
+
+    # Spreads
+    spread_columns = [f'Spread.{i}' for i in range(len(bid_columns))] # Se crea una lista con los nombres de las columnas de Spread
+    data[spread_columns] = (data[ask_columns].values - data[bid_columns].values) / data[mid_columns].values
+
+    # Returns
+    return_columns = [f'Return.{i}' for i in range(len(mid_columns))] # Se crea una lista con los nombres de las columnas de Return
+    data[return_columns] = data[mid_columns].pct_change()
+
+    # Weights
+    value = posiciones * data[mid_columns].iloc[-1].values
+    pv = np.sum(value)
+    w = value / pv
+
+    # Portfolio return
+    data['port_ret'] = np.dot(data[return_columns], w)
+
+    # VaR calculation
+    var_pct = np.percentile(data['port_ret'].dropna(), 100 - conf*100) if long else np.percentile(data['port_ret'].dropna(), conf*100)
+    var_cash = pv * var_pct
+
+    # C-VaR calculation
+    cvar_pct = data['port_ret'][data['port_ret'] < var_pct].dropna().mean() if long else data['port_ret'][data['port_ret'] > var_pct].dropna().mean()
+    cvar_cash = pv * cvar_pct
+
+    # Liquidity cost
+    cl_prom = data[spread_columns].mean()
+    cl_estr = np.percentile(data[spread_columns], 99, axis=0)
+
+    # VaR adjusted by liquidity cost
+
+    var_apl_prom, var_apl_estr = np.abs(((var_pct - np.dot(w, cl_prom), var_pct - np.dot(w, cl_estr)) if long 
+                                else (var_pct + np.dot(w, cl_prom), var_pct + np.dot(w, cl_estr))))
+
+    var_apl_prom_cash, var_apl_estr_cash = np.abs(((var_cash - np.dot(value, cl_prom), var_cash - np.dot(value, cl_estr)) if long 
+                                            else (var_cash + np.dot(value, cl_prom), var_cash + np.dot(value, cl_estr))))
+    
+    # C-VaR adjusted by liquidity cost
+
+    cvar_apl_prom, cvar_apl_estr = np.abs(((cvar_pct - np.dot(w, cl_prom), cvar_pct - np.dot(w, cl_estr)) if long
+                                    else (cvar_pct + np.dot(w, cl_prom), cvar_pct + np.dot(w, cl_estr))))
+    
+    cvar_apl_prom_cash, cvar_apl_estr_cash = np.abs(((cvar_cash - np.dot(value, cl_prom), cvar_cash - np.dot(value, cl_estr)) if long
+                                            else (cvar_cash + np.dot(value, cl_prom), cvar_cash + np.dot(value, cl_estr))))
+
+    resultados = pd.DataFrame({
+        'Métrica': ['VaR', 'VaR Ajustado Promedio', 'VaR Ajustado Estresado', 'C-VaR', 'C-VaR Ajustado Promedio', 'C-VaR Ajustado Estresado'],
+        'Porcentaje': [np.abs(var_pct), var_apl_prom, var_apl_estr, np.abs(cvar_pct), cvar_apl_prom, cvar_apl_estr],
+        'Cash': [np.abs(var_cash), var_apl_prom_cash, var_apl_estr_cash, np.abs(cvar_cash), cvar_apl_prom_cash, cvar_apl_estr_cash]
+    })
+
+    return resultados
