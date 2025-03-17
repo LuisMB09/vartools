@@ -356,18 +356,15 @@ A pie chart showing the portfolio weights.
 
 ### `BlackScholes`
 
-#### Parameters:
+A class to implement the Black-Scholes model for option pricing and delta hedging.
 
-- S: Current stock price
-- k: Strike price
-- r: Risk-free rate
-- sigma: Volatility of the asset
-- T: Time to expiration (in years)
+#### Methods:
+--------
+- call_delta(S, k, r, sigma, T): Computes the delta of a European call option.
+- put_delta(S, k, r, sigma, T): Computes the delta of a European put option.
+- delta_hedge(info_call, info_put): Computes the total delta of a portfolio of call and put options.
 
-#### Returns
-The value of the delta of a call or put option.
-
-**Note:** It also has function to determine how much of the underlying asset (in monetary unit) should be bought to delta hedge.
+**Note:** See usage examples for better understanding.
 
 ## Usage Example
 ```python
