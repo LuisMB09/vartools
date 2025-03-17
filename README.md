@@ -47,25 +47,11 @@ A function to download stock data from Yahoo Finance.
 - **stocks** : str | list
     The stock tickers to download.
 - **start_date** : str
-    The start date for the data.
+    The start date for the data in the format `YYYY-MM-DD`.
 - **end_date** : str
-    The end date for the data.
+    The end date for the data in the format `YYYY-MM-DD`.
 - **type** : str
-    The type of data to download (e.g., 'Close', 'Open', 'High', 'Low', 'Adj Close', 'Volume').
-
-#### Returns
---------
-**data** : pd.DataFrame
-    A DataFrame containing the stock data.
-
-#### Parameters
-- **stocks** (*list*): List of stock tickers to download.
-- **start_date** (*str*): Start date in the format `YYYY-MM-DD`.
-- **end_date** (*str*): End date in the format `YYYY-MM-DD`.
-- **type** (*str*): Type of price to retrieve (e.g., `"Adj Close"`, `"Close"`).
-
-#### Returns
-- **pd.DataFrame**: A DataFrame containing the selected price type for the specified stocks.
+    The type of data to download (e.g., `"Close"`).
 
 **Note:** If you prefer to directly download the data from yfinance it is encouraged a format like this:
 
