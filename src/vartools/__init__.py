@@ -12,7 +12,6 @@ def var_stocks(data: pd.DataFrame, n_stocks: list, conf: int | float, long: bool
     Calculate the Value at Risk (VaR) and Conditional Value at Risk (CVaR) for a portfolio of stocks.
     
     Parameters:
-    -----------
     data : pd.DataFrame
         A DataFrame containing historical stock prices, indexed by date.
     n_stocks : list
@@ -27,13 +26,11 @@ def var_stocks(data: pd.DataFrame, n_stocks: list, conf: int | float, long: bool
         A list of column names representing the stocks to be included in the portfolio.
 
     Returns:
-    --------
     var_stocks_df : pd.DataFrame
+
         A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
     
-    Notes:
-    ------
-    n_stocks and stocks must coincide in lenght and order.
+    Notes: n_stocks and stocks must coincide in lenght and order.
     """
 
     data = data.sort_index()
@@ -64,7 +61,6 @@ def var_forex(data: pd.DataFrame, positions: list, conf: int | float, long: bool
     Calculate the Value at Risk (VaR) and Conditional Value at Risk (CVaR) for a portfolio of currencies.
 
     Parameters:
-    -----------
     data : pd.DataFrame
         A DataFrame containing historical exchange rates, indexed by date.
     positions : list
@@ -79,13 +75,11 @@ def var_forex(data: pd.DataFrame, positions: list, conf: int | float, long: bool
         A list of column names representing the currencies to be included in the portfolio.
     
     Returns:
-    --------
     var_df : pd.DataFrame
+
         A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
     
-    Notes:
-    ------
-    n_stocks and stocks must coincide in lenght and order.
+    Notes: n_stocks and stocks must coincide in lenght and order.
     """
 
     data = data.sort_index()
@@ -114,7 +108,6 @@ def rebalance_stocks(w_original: list, target_weights: list, data: pd.DataFrame,
     Rebalance a portfolio of stocks to achieve target weights.
 
     Parameters:
-    -----------
     w_original : list
         The original weights of the portfolio.
     target_weights : list
@@ -127,8 +120,8 @@ def rebalance_stocks(w_original: list, target_weights: list, data: pd.DataFrame,
         The total value of the portfolio.
 
     Returns:
-    --------
     w_df : pd.DataFrame
+
         A DataFrame containing the original and target weights, as well as the number of shares to buy/sell.
     """
 
@@ -148,7 +141,6 @@ def get_data(stocks: str | list, start_date: str, end_date: str, type: str = 'Cl
     A function to download stock data from Yahoo Finance.
 
     Parameters:
-    -----------
     stocks : str | list
         The stock tickers to download.
     start_date : str
@@ -159,8 +151,8 @@ def get_data(stocks: str | list, start_date: str, end_date: str, type: str = 'Cl
         The type of data to download (e.g., 'Close', 'Open', 'High', 'Low', 'Adj Close', 'Volume').
 
     Returns:
-    --------
     data : pd.DataFrame
+
         A DataFrame containing the stock data.
     """
 
@@ -174,7 +166,6 @@ def var_weights(data: pd.DataFrame, weights: list | np.ndarray, conf: int | floa
     A function to calculate the Value at Risk (VaR) for a portfolio of stocks.
 
     Parameters:
-    -----------
     data : pd.DataFrame
         A DataFrame containing historical stock prices, indexed by date.
     weights : list | np.ndarray
@@ -183,8 +174,8 @@ def var_weights(data: pd.DataFrame, weights: list | np.ndarray, conf: int | floa
         The confidence level for the VaR calculation (e.g., 95 for 95% confidence).
     
     Returns:
-    --------
     var : float
+
         The VaR value for the portfolio.
     """
 
@@ -199,7 +190,6 @@ def cvar_weights(data: pd.DataFrame, weights: list | np.ndarray, conf: int | flo
     A function to calculate the Conditional Value at Risk (CVaR) for a portfolio of stocks.
 
     Parameters:
-    -----------
     data : pd.DataFrame
         A DataFrame containing historical stock prices, indexed by date.
     weights : list | np.ndarray
@@ -208,8 +198,8 @@ def cvar_weights(data: pd.DataFrame, weights: list | np.ndarray, conf: int | flo
         The confidence level for the CVaR calculation (e.g., 95 for 95% confidence).
 
     Returns:
-    --------
     cvar_pct : float
+
         The CVaR value for the portfolio.
     """
 
@@ -267,13 +257,12 @@ def min_variance(returns: pd.DataFrame) -> np.array:
     A function to calculate the minimum variance portfolio.
 
     Parameters:
-    -----------
     returns : pd.DataFrame
         A DataFrame containing the returns of the assets in the portfolio.
 
     Returns:
-    --------
     min_var_weights : np.array
+
         An array containing the weights of the minimum variance portfolio.
     """
 
@@ -301,7 +290,7 @@ def min_variance(returns: pd.DataFrame) -> np.array:
     # Optimización
     result = minimize(min_var, 
             w0, 
-            args=(mu, sigma), 
+            args=(sigma), 
             method='SLSQP', 
             bounds=bounds, 
             constraints=constraints)
@@ -317,15 +306,14 @@ def min_cvar(returns: pd.DataFrame, alpha: float) -> np.array:
     A function to calculate the minimum CVaR portfolio.
 
     Parameters:
-    -----------
     returns : pd.DataFrame
         A DataFrame containing the returns of the assets in the portfolio.
     alpha : float
         The alpha value for the CVaR calculation (e.g., 0.05 for 95% confidence).
     
     Returns:
-    --------
     min_cvar_weights : np.array
+
         An array containing the weights of the minimum CVaR portfolio.
     """
 
@@ -371,15 +359,14 @@ def mcc_portfolio(returns: pd.DataFrame, alpha: float) -> np.array:
     A function to calculate the Minimum CVaR Concentration portfolio.
 
     Parameters:
-    -----------
     returns : pd.DataFrame
         A DataFrame containing the returns of the assets in the portfolio.
     alpha : float
         The alpha value for the CVaR calculation (e.g., 0.05 for 95% confidence).
 
     Returns:
-    --------
     mcc_weights : np.array
+
         An array containing the weights of the Minimum CVaR Concentration portfolio.
     """
 
@@ -423,7 +410,6 @@ def cvar_contributions(weights: list | np.ndarray, returns: pd.DataFrame, alpha:
     A function to calculate the CVaR contributions of each asset in a portfolio.
 
     Parameters:
-    -----------
     weights : list | np.ndarray
         A list of weights for the portfolio.
     returns : pd.DataFrame
@@ -432,8 +418,8 @@ def cvar_contributions(weights: list | np.ndarray, returns: pd.DataFrame, alpha:
         The alpha value for the CVaR calculation (e.g., 0.05 for 95% confidence).
 
     Returns:
-    --------
     contributions : list
+
         A list containing the CVaR contributions of each asset in the portfolio.
     """
 
@@ -466,14 +452,12 @@ def plot_weights(stocks: list, weights: list | np.ndarray):
     A function to plot the weights of a portfolio.
 
     Parameters:
-    -----------
     stocks : list
         A list of stock tickers.
     weights : list | np.ndarray
         A list of weights for the portfolio
 
     Returns:
-    --------
         A pie chart showing the portfolio weights.
     """
 
@@ -492,18 +476,15 @@ def plot_weights(stocks: list, weights: list | np.ndarray):
     plt.show()
 
 class BlackScholes:
-    """
-    A class to implement the Black-Scholes model for option pricing and delta hedging.
-    
-    Methods:
-    --------
-    - call_delta(S, k, r, sigma, T): Computes the delta of a European call option.
-    - put_delta(S, k, r, sigma, T): Computes the delta of a European put option.
-    - delta_hedge(info_call, info_put): Computes the total delta of a portfolio of call and put options.
-    """
     def __init__(self):
         """
-        Initialize the Black-Scholes model.
+        A class to implement the Black-Scholes model for option pricing and delta hedging.
+        
+        Methods:
+        --------
+        - call_delta(S, k, r, sigma, T): Computes the delta of a European call option.
+        - put_delta(S, k, r, sigma, T): Computes the delta of a European put option.
+        - delta_hedge(info_call, info_put): Computes the total delta of a portfolio of call and put options.
         """
 
     def _calculate_d1(self, S, k, r, sigma, T):
@@ -526,6 +507,7 @@ class BlackScholes:
         Returns:
         --------
         float
+
             The d1 value used in the Black-Scholes formula.
         """
         return (np.log(S / k) + (r + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
@@ -551,6 +533,7 @@ class BlackScholes:
         Returns:
         --------
         float
+
             Delta of the call option.
         """
         return norm.cdf(self._calculate_d1(S, k, r, sigma, T))
@@ -575,6 +558,7 @@ class BlackScholes:
         Returns:
         --------
         float
+
             Delta of the put option.
         """
         return np.abs(norm.cdf(self._calculate_d1(S, k, r, sigma, T)) - 1)
@@ -607,6 +591,7 @@ class BlackScholes:
         Returns:
         --------
         float
+
             The total delta of the portfolio.
         """
 
@@ -624,7 +609,6 @@ def var_apl(data: pd.DataFrame, posiciones: list | np.ndarray, conf: float, long
     A function that calculates the Value at Risk (VaR) and Conditional Value at Risk (CVaR) adjusted by liquidity cost for a portfolio.
 
     Parameters:
-    -----------
     data : pd.DataFrame
         A DataFrame containing historical exchange rates, indexed by date.
     posiciones : list | np.ndarray
@@ -637,8 +621,8 @@ def var_apl(data: pd.DataFrame, posiciones: list | np.ndarray, conf: float, long
         - 0 for short positions
 
     Returns:
-    --------
     resultados : pd.DataFrame
+    
         A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
     """
 
