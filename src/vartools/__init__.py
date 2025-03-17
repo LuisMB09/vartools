@@ -44,21 +44,10 @@ def var_stocks(data: pd.DataFrame, n_stocks: list, conf: int | float, long: bool
     w = stock_value / portfolio_value
     portfolio_return = np.dot(w, rt.T)
 
-    if long == 1:
+    var_pct = np.percentile(portfolio_return, 100-conf) if long else np.percentile(portfolio_return, conf)
+    cvar_pct = np.abs(portfolio_return[portfolio_return < var_pct].mean()) if long else portfolio_return[portfolio_return > var_pct].mean()
 
-        var_pct = np.percentile(portfolio_return, 100-conf)
-        cvar_pct = np.abs(portfolio_return[portfolio_return < var_pct].mean())
-
-        var_cash = portfolio_value * np.abs(var_pct)
-        cvar_cash = portfolio_value * cvar_pct
-
-    else:
-        
-        var_pct = np.percentile(portfolio_return, conf)
-        cvar_pct = portfolio_return[portfolio_return > var_pct].mean()
-
-        var_cash = portfolio_value * var_pct
-        cvar_cash = portfolio_value * cvar_pct
+    var_cash, cvar_cash = portfolio_value * var_pct, portfolio_value * cvar_pct
 
     var_stocks_df = pd.DataFrame({
         "Métrica": ["VaR", "cVaR"],
@@ -103,23 +92,12 @@ def var_forex(data: pd.DataFrame, positions: list, conf: int | float, long: bool
     data = data[currencies]
     port = data * positions
     port['total'] = port.sum(axis=1)
-    port['rendimiento'] = port['total'].pct_change()
+    portfolio_return = port['total'].pct_change().dropna()
 
-    if long == 1:
+    var_porcentual = np.percentile(portfolio_return, 100-conf) if long else np.percentile(portfolio_return, conf)
+    cvar_porcentual = np.abs(portfolio_return[portfolio_return < var_porcentual].mean()) if long else portfolio_return[portfolio_return > var_porcentual].mean()
 
-        var_porcentual = np.percentile(port['rendimiento'].dropna(), 100-conf)
-        var_cash = port['total'].iloc[-1] * np.abs(var_porcentual)
-
-        cvar_porcentual = np.abs(port.query("rendimiento < @var_porcentual")['rendimiento'].mean())
-        cvar_cash = port['total'].iloc[-1] * cvar_porcentual
-
-    else:
-
-        var_porcentual = np.percentile(port['rendimiento'].dropna(), conf)
-        var_cash = port['total'].iloc[-1] * var_porcentual
-
-        cvar_porcentual = port.query("rendimiento > @var_porcentual")['rendimiento'].mean()
-        cvar_cash = port['total'].iloc[-1] * cvar_porcentual
+    var_cash, cvar_cash = port['total'].iloc[-1] * var_porcentual, port['total'].iloc[-1] * cvar_porcentual
 
     var_df = pd.DataFrame({
         "Métrica": ["VaR", "cVaR"],
@@ -213,8 +191,7 @@ def var_weights(data: pd.DataFrame, weights: list | np.ndarray, conf: int | floa
     data = data.sort_index()
     rt = data.pct_change().dropna()
     portfolio_returns = np.dot(weights, rt.T)
-    var = np.percentile(portfolio_returns, 100-conf)
-    return np.abs(var)
+    return np.abs(np.percentile(portfolio_returns, 100-conf))
 
 
 def cvar_weights(data: pd.DataFrame, weights: list | np.ndarray, conf: int | float) -> float:
