@@ -42,7 +42,7 @@ To get the latest version.
 
 A function to download stock data from Yahoo Finance.
 
-#### Parameters
+#### Parameters:
 -----------
 - **stocks** : str | list
 
@@ -57,9 +57,10 @@ A function to download stock data from Yahoo Finance.
 
     The type of data to download (e.g., `"Close"`).
 
-#### Returns
+#### Returns:
 --------
 **data** : pd.DataFrame
+
     A DataFrame containing the stock data.
 
 **Note:** If you prefer to directly download the data from yfinance it is encouraged a format like this:
@@ -72,6 +73,35 @@ data=yf.download(stocks, start="2020-01-01", end="2023-01-01")['Close'][stocks]
 Also if you get the data from an excel or csv file create the list `stocks` or `currencies`with the name of the columns in your file for correct functioning. Also make sure to establish yor `Date`column as index.
 
 ### `var_stocks(data, n_stocks, conf, long, stocks)`
+
+Calculate the Value at Risk (VaR) and Conditional Value at Risk (CVaR) for a portfolio of stocks.
+
+#### Parameters:
+-----------
+- **data** : pd.DataFrame
+
+    A DataFrame containing historical stock prices, indexed by date.
+- **n_stocks** : list
+
+    Number of stocks per ticker.
+- **conf** : int | float
+
+    The confidence level for the VaR calculation (e.g., 95 for 95% confidence).
+- **long** : bool
+
+    Indicates the position type:
+    - 1 (True) for long positions
+    - 0 (False) for short positions
+    
+- **stocks** : list
+
+    A list of column names representing the stocks to be included in the portfolio.
+
+#### Returns:
+--------
+var_stocks_df : pd.DataFrame
+
+    A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
 Calculates the **VaR** and **cVaR** for a stock portfolio.
 
 #### Parameters:
@@ -87,7 +117,8 @@ A DataFrame with the following columns:
 - **Porcentaje**: The percentage value of risk.
 - **Cash**: The risk in monetary terms.
 
-**Note:** Utilize this function when you have the number of shares of each stock instead of the weights.
+**Note:** Utilize this function when you have the number of shares of each stock instead of the weights, also `n_stocks` and `stocks` must coincide in lenght and order.
+
 
 
 ### `var_forex(data, positions, conf, long, currencies)`
