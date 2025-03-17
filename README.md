@@ -44,22 +44,22 @@ A function to download stock data from Yahoo Finance.
 
 #### Parameters:
 -----------
-- **stocks** : str | list
+- **stocks** : `str | list`
 
     The stock tickers to download.
-- **start_date** : str
+- **start_date** : `str`
 
     The start date for the data in the format `YYYY-MM-DD`.
-- **end_date** : str
+- **end_date** : `str`
 
     The end date for the data in the format `YYYY-MM-DD`.
-- **type** : str
+- **type** : `str`
 
     The type of data to download (e.g., `"Close"`).
 
 #### Returns:
 --------
-**data** : pd.DataFrame
+**data** : `pd.DataFrame`
 
     A DataFrame containing the stock data.
 
@@ -78,28 +78,28 @@ Calculate the Value at Risk (VaR) and Conditional Value at Risk (CVaR) for a por
 
 #### Parameters:
 -----------
-- **data** : pd.DataFrame
+- **data** : `pd.DataFrame`
 
     A DataFrame containing historical stock prices, indexed by date.
-- **n_stocks** : list
+- **n_stocks** : `list`
 
     Number of stocks per ticker.
-- **conf** : int | float
+- **conf** : `int | float`
 
     The confidence level for the VaR calculation (e.g., 95 for 95% confidence).
-- **long** : bool
+- **long** : `bool`
 
     Indicates the position type:
     - 1 (True) for long positions
     - 0 (False) for short positions
 
-- **stocks** : list
+- **stocks** : `list`
 
     A list of column names representing the stocks to be included in the portfolio.
 
 #### Returns:
 --------
-var_stocks_df : pd.DataFrame
+**var_stocks_df** : `pd.DataFrame`
 
     A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
 
@@ -113,28 +113,28 @@ Calculate the Value at Risk (VaR) and Conditional Value at Risk (CVaR) for a por
 
 #### Parameters:
 -----------
-- **data** : pd.DataFrame
+- **data** : `pd.DataFrame`
 
     A DataFrame containing historical exchange rates, indexed by date.
-- **positions** : list
+- **positions** : `list`
 
     A list of positions for each currency.
-- **conf** : int | float
+- **conf** : `int | float`
 
     The confidence level for the VaR calculation (e.g., 95 for 95% confidence).
-- **long** : bool
+- **long** : `bool`
 
     Indicates the position type:
     - 1 (True) for long positions
     - 0 (False) for short positions
 
-- **currencies** : list
+- **currencies** : `list`
 
     A list of column names representing the currencies to be included in the portfolio.
 
 #### Returns:
 --------
-var_df : pd.DataFrame
+**var_df** : `pd.DataFrame`
 
     A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
 
@@ -142,17 +142,32 @@ var_df : pd.DataFrame
 
 
 ### `rebalance_stocks(w_original, target_weights, data, stocks, portfolio_value)`
-Calculates the number of shres to buy/sell to rebalance a **stock portfolio**..
+
+Rebalance a portfolio of stocks to achieve target weights.
 
 #### Parameters:
-- **w_original**: `list` of floats representing the original weights of each asset in the portfolio.
-- **target_weights**: `list` of floats representing the target weights of each asset in the portfolio.
-- **data**: `pd.DataFrame` with historical stock prices, where columns represent different stocks.
-- **stocks**: `list` of stock tickers (column names in the `data` DataFrame).
-- **portfolio_value**: `float` representing the total value of the portfolio.
+-----------
+- **w_original** : `list`
+
+    The original weights of the portfolio.
+- **target_weights** : `list`
+
+    The target weights for the portfolio.
+- **data** : `pd.DataFrame`
+
+    A DataFrame containing historical stock prices, indexed by date.
+- **stocks** : `list`
+
+    A list of column names representing the stocks to be included in the portfolio.
+- **portfolio_value** : `float`
+
+    The total value of the portfolio.
 
 #### Returns:
-- A `pd.DataFrame` showing the original weights, target weights, and the number of shares to buy or sell for each asset to rebalance the portfolio.
+--------
+**w_df** : `pd.DataFrame`
+
+    A DataFrame containing the original and target weights, as well as the number of shares to buy/sell.
 
 
 ### `var_weights(data, weights, conf)`
