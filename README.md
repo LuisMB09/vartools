@@ -40,6 +40,24 @@ To get the latest version.
 
 ### `get_data(stocks, start_date, end_date, type)`
 
+A function to download stock data from Yahoo Finance.
+
+#### Parameters
+-----------
+- **stocks** : str | list
+    The stock tickers to download.
+- **start_date** : str
+    The start date for the data.
+- **end_date** : str
+    The end date for the data.
+- **type** : str
+    The type of data to download (e.g., 'Close', 'Open', 'High', 'Low', 'Adj Close', 'Volume').
+
+#### Returns
+--------
+**data** : pd.DataFrame
+    A DataFrame containing the stock data.
+
 #### Parameters
 - **stocks** (*list*): List of stock tickers to download.
 - **start_date** (*str*): Start date in the format `YYYY-MM-DD`.
