@@ -71,6 +71,8 @@ data=yf.download(stocks, start="2020-01-01", end="2023-01-01")['Close'][stocks]
 ```
 
 Also if you get the data from an excel or csv file create the list `stocks` or `currencies`with the name of the columns in your file for correct functioning. Also make sure to establish yor `Date`column as index.
+--------
+
 
 ### `var_stocks(data, n_stocks, conf, long, stocks)`
 
@@ -104,7 +106,7 @@ A list of column names representing the stocks to be included in the portfolio.
 A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
 
 **Note:** Utilize this function when you have the number of shares of each stock instead of the weights, also `n_stocks` and `stocks` must coincide in lenght and order.
-
+--------
 
 
 ### `var_forex(data, positions, conf, long, currencies)`
@@ -139,6 +141,7 @@ Calculate the Value at Risk (VaR) and Conditional Value at Risk (CVaR) for a por
 A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
 
 **Note:** n_stocks and stocks must coincide in lenght and order.
+--------
 
 
 ### `rebalance_stocks(w_original, target_weights, data, stocks, portfolio_value)`
@@ -213,7 +216,7 @@ A function to calculate the Conditional Value at Risk (CVaR) for a portfolio of 
 
 #### Returns:
 --------
-cvar_pct : `float`
+**cvar_pct** : `float`
 
 The CVaR value for the portfolio.
 
@@ -231,62 +234,106 @@ The CVaR value for the portfolio.
 It returns a vector with the optimal weight for each stock.
 
 
-### `min_variance(returns, rf)`
+### `min_variance(returns)`
 
-#### Parameters
-- **returns** (*pd.DataFrame*): DataFrame containing the daily returns of the stock prices.
+A function to calculate the minimum variance portfolio.
 
-#### Returns
-It returns a vector with the optimal weight for each stock.
+#### Parameters:
+-----------
+- **returns** : `pd.DataFrame`
+
+    A DataFrame containing the returns of the assets in the portfolio.
+
+#### Returns:
+--------
+**min_var_weights** : `np.array`
+
+An array containing the weights of the minimum variance portfolio.
 
 
 ### `min_cvar(returns, alpha)`
 
+A function to calculate the minimum CVaR portfolio.
+
 #### Parameters:
-- returns (*pd.DataFrame*): DataFrame containing historical asset returns.
-- alpha (float): Significance level for CVaR (example: 0.05 for 95% confidence level).
+-----------
+- **returns** : `pd.DataFrame`
+
+    A DataFrame containing the returns of the assets in the portfolio.
+- **alpha** : `float`
+
+    The alpha value for the CVaR calculation (e.g., 0.05 for 95% confidence).
 
 #### Returns:
-It returns a vector with the optimal weight for each stock.
+--------
+**min_cvar_weights** : `np.array`
 
 **Note:** It is required to write alpha in decimal notation, also this portfolio strategy only works for long positions.
 
 
 ### `mcc_portfolio(returns, alpha)`
 
+A function to calculate the Minimum CVaR Concentration portfolio.
+
 #### Parameters:
-- returns (*pd.DataFrame*): DataFrame containing historical asset returns.
-- alpha (float): Significance level for CVaR (example: 0.05 for 95% confidence level).
+-----------
+- **returns** : `pd.DataFrame`
+
+    A DataFrame containing the returns of the assets in the portfolio.
+- **alpha** : `float`
+
+    The alpha value for the CVaR calculation (e.g., 0.05 for 95% confidence).
 
 #### Returns:
-It returns a vector with the optimal weight for each stock.
+--------
+**mcc_weights** : `np.array`
+
+An array containing the weights of the Minimum CVaR Concentration portfolio.
 
 **Note:** It is required to write alpha in decimal notation, also this portfolio strategy only works for long positions.
 
 
 ### `def cvar_contributions(weights, returns, alpha)`
 
+A function to calculate the CVaR contributions of each asset in a portfolio.
+
 #### Parameters:
-- weights: An array with the weights for each asset in the portfolio.
-- returns (*pd.DataFrame*): DataFrame containing historical asset returns.
-- alpha (float): Significance level for CVaR (example: 0.05 for 95% confidence level).
+-----------
+- **weights** : `list | np.ndarray`
+
+    A list of weights for the portfolio.
+- **returns** : `pd.DataFrame`
+
+    A DataFrame containing the returns of the assets in the portfolio.
+- **alpha** : `float`
+
+    The alpha value for the CVaR calculation (e.g., 0.05 for 95% confidence).
 
 #### Returns:
-It returns an array with the individual contribution of each asset to the cvar of the portfolio.
+--------
+**contributions** : `list`
 
 **Note:** It is required to write alpha in decimal notation, also this portfolio strategy only works for long positions, so the weights must add up to 1.
 
 
 
-### `plot_weights(df)`
+### `plot_weights(stocks, weights)`
 
-#### Parameters
-- df (*pd.DataFrame*): DataFrame with the weights for each stock.
+A function to plot the weights of a portfolio.
 
-#### Returns
-It creates a pie chart with the weights of the portfolio.
+#### Parameters:
+-----------
+- **stocks** : `list`
 
-**Note:** It works with the DataFrames generated by the optimization modules of the package.
+    A list of stock tickers.
+- **weights** : `list | np.ndarray`
+
+    A list of weights for the portfolio
+
+#### Returns:
+--------
+A pie chart showing the portfolio weights.
+
 
 ### `BlackScholes`
 
