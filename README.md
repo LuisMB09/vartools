@@ -229,6 +229,7 @@ The CVaR value for the portfolio.
 
 **Note:** It only works for long positions, and the weights must add up to 1.
 
+--------
 
 
 ### `opt_sharpe(returns, rf)`
@@ -239,6 +240,8 @@ The CVaR value for the portfolio.
 
 #### Returns
 It returns a vector with the optimal weight for each stock.
+
+--------
 
 
 ### `min_variance(returns)`
@@ -256,6 +259,8 @@ A function to calculate the minimum variance portfolio.
 **min_var_weights** : `np.array`
 
 An array containing the weights of the minimum variance portfolio.
+
+--------
 
 
 ### `min_cvar(returns, alpha)`
@@ -276,6 +281,8 @@ A function to calculate the minimum CVaR portfolio.
 **min_cvar_weights** : `np.array`
 
 **Note:** It is required to write alpha in decimal notation, also this portfolio strategy only works for long positions.
+
+--------
 
 
 ### `mcc_portfolio(returns, alpha)`
@@ -298,6 +305,8 @@ A function to calculate the Minimum CVaR Concentration portfolio.
 An array containing the weights of the Minimum CVaR Concentration portfolio.
 
 **Note:** It is required to write alpha in decimal notation, also this portfolio strategy only works for long positions.
+
+--------
 
 
 ### `def cvar_contributions(weights, returns, alpha)`
@@ -322,6 +331,7 @@ A function to calculate the CVaR contributions of each asset in a portfolio.
 
 **Note:** It is required to write alpha in decimal notation, also this portfolio strategy only works for long positions, so the weights must add up to 1.
 
+--------
 
 
 ### `plot_weights(stocks, weights)`
@@ -340,6 +350,8 @@ A function to plot the weights of a portfolio.
 #### Returns:
 --------
 A pie chart showing the portfolio weights.
+
+--------
 
 
 ### `BlackScholes`
