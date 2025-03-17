@@ -95,13 +95,13 @@ Calculate the Value at Risk (VaR) and Conditional Value at Risk (CVaR) for a por
 
 - **stocks** : `list`
 
-    A list of column names representing the stocks to be included in the portfolio.
+A list of column names representing the stocks to be included in the portfolio.
 
 #### Returns:
 --------
 **var_stocks_df** : `pd.DataFrame`
 
-    A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
+A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
 
 **Note:** Utilize this function when you have the number of shares of each stock instead of the weights, also `n_stocks` and `stocks` must coincide in lenght and order.
 
@@ -136,7 +136,7 @@ Calculate the Value at Risk (VaR) and Conditional Value at Risk (CVaR) for a por
 --------
 **var_df** : `pd.DataFrame`
 
-    A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
+A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
 
 **Note:** n_stocks and stocks must coincide in lenght and order.
 
@@ -167,31 +167,55 @@ Rebalance a portfolio of stocks to achieve target weights.
 --------
 **w_df** : `pd.DataFrame`
 
-    A DataFrame containing the original and target weights, as well as the number of shares to buy/sell.
+A DataFrame containing the original and target weights, as well as the number of shares to buy/sell.
 
 
 ### `var_weights(data, weights, conf)`
 
-#### Parameters
-- **data** (*pd.DataFrame*): DataFrame containing historical stock prices.
-- **weights** (*list or np.array*): Portfolio weights corresponding to each stock.
-- **conf** (*float*): Confidence level (e.g., 95 for 95%).
+A function to calculate the Value at Risk (VaR) for a portfolio of stocks.
 
-#### Returns
-- **var** (*float*): The Value at Risk (VaR) at the given confidence level.
+#### Parameters:
+-----------
+- **data** : `pd.DataFrame`
+
+    A DataFrame containing historical stock prices, indexed by date.
+- **weights** : `list | np.ndarray`
+
+    A list of weights for the portfolio.
+- **conf** : `int | float`
+
+    The confidence level for the VaR calculation (e.g., 95 for 95% confidence).
+
+#### Returns:
+--------
+**var** : `float`
+
+The VaR value for the portfolio.
 
 **Note:** It only works for long positions, and the weights must add up to 1.
 
 
 ### `cvar_weights(data, weights, conf)`
 
-#### Parameters
-- **data** (*pd.DataFrame*): DataFrame containing historical stock prices.
-- **weights** (*list or np.array*): Portfolio weights corresponding to each stock.
-- **conf** (*float*): Confidence level (e.g., 95 for 95%).
+A function to calculate the Conditional Value at Risk (CVaR) for a portfolio of stocks.
 
-#### Returns
-- **cvar_pct** (*float*): The Conditional Value at Risk (CVaR), representing the expected loss beyond VaR.
+#### Parameters:
+-----------
+- **data** : `pd.DataFrame`
+
+    A DataFrame containing historical stock prices, indexed by date.
+- **weights** : `list | np.ndarray`
+
+    A list of weights for the portfolio.
+- **conf** : `int | float`
+
+    The confidence level for the CVaR calculation (e.g., 95 for 95% confidence).
+
+#### Returns:
+--------
+cvar_pct : `float`
+
+The CVaR value for the portfolio.
 
 **Note:** It only works for long positions, and the weights must add up to 1.
 
