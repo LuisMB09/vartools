@@ -395,10 +395,11 @@ A class to implement the Black-Scholes model for option pricing and delta hedgin
 --------
 **capital** : `float`
 
-    The final capital after the backtest.
+The final capital after the backtest.
+
 **portfolio_value** : `list[float]`
 
-    A list containing the portfolio value at each time step.
+A list containing the portfolio value at each time step.
 
 --------
 
