@@ -3,8 +3,10 @@ import pandas as pd
 import yfinance as yf
 from scipy.stats import norm
 import matplotlib.pyplot as plt
+from dataclasses import dataclass
 from scipy.optimize import minimize
 pd.set_option('display.float_format', '{:,.4f}'.format)
+
 
 
 def var_stocks(data: pd.DataFrame, n_stocks: list, conf: int | float, long: bool, stocks: list) -> pd.DataFrame:
@@ -711,3 +713,166 @@ def var_apl(data: pd.DataFrame, posiciones: list | np.ndarray, conf: float, long
     })
 
     return resultados
+@dataclass
+class Position:
+    """ 
+    A cool representation of a position
+    """
+    ticker: str
+    n_shares: int
+    price: float
+    sl: float
+    tp: float
+    margin_account: float
+    margin_requirement: float
+
+def get_portfolio_value(cash: float, long_ops: list[Position], short_ops: list[Position], current_price: float, n_shares: int, COM: float) -> float:
+    val = cash
+
+    # Add long positions value
+    val += len(long_ops) * current_price * n_shares
+
+    # Add short positions equity (margin_account + margin_requirement - cost to cover)
+    for pos in short_ops:
+        cover_cost = current_price * pos.n_shares * (1 + COM)  # include commission
+        val += pos.margin_account + pos.margin_requirement - cover_cost
+
+    return val
+
+def backtest_one_indicator(data: pd.DataFrame, COM: float, BORROW_RATE: float, INITIAL_MARGIN: float, MAINTENANCE_MARGIN: float, 
+                           STOP_LOSS: float, TAKE_PROFIT: float, N_SHARES: int, initial_capital: float, time_frame: float) -> tuple[float, list[float]]:
+    """
+    A function to backtest a trading strategy based on buy and sell signals.
+
+    **Important**: Dataframe must have a column called 'buy_signal' and another called 'sell_signal' 
+    with boolean values as well as the column with the 'Close' prices.
+
+    Parameters
+    -----------
+    data : pd.DataFrame
+        A DataFrame containing historical stock prices and buy/sell signals, indexed by date.
+    COM : float
+        Commission rate per trade (e.g., 0.001 for 0.1% commission).
+    BORROW_RATE : float
+        Annual borrow rate for short selling (e.g., 0.05 for 5% annual rate).
+    INITIAL_MARGIN : float
+        Initial margin requirement for short selling (e.g., 0.5 for 50% margin).
+    MAINTENANCE_MARGIN : float
+        Maintenance margin requirement for short selling (e.g., 0.3 for 30% margin).
+    STOP_LOSS : float
+        Stop loss percentage (e.g., 0.02 for 2% stop loss).
+    TAKE_PROFIT : float
+        Take profit percentage (e.g., 0.04 for 4% take profit).
+    N_SHARES : int
+        Number of shares to trade per signal.
+    initial_capital : float
+        Initial capital for the backtest.
+    time_frame : float
+        Time frame of the data in minutes (e.g., 5 for 5-minute bars)
+
+    Returns:
+    -----------
+    capital : float
+
+        The final capital after the backtest.
+    portfolio_value : list[float]
+
+        A list containing the portfolio value at each time step.
+    """
+    
+    capital = initial_capital
+    portfolio_value = [capital]
+    active_long_positions: list[Position] = []
+    active_short_positions: list[Position] = []
+    
+    bars_per_year = 252 * 6.5 * 60 / time_frame  # 252 trading days, 6.5 hours per day, 5-min bars
+    bar_borrow_rate = (1 + BORROW_RATE) ** (1 / bars_per_year) - 1
+
+    for i, row in data.iterrows():
+        # -- LONG -- #
+        # Check active orders
+        for position in active_long_positions.copy():
+            # Stop loss or take profit check
+            if row.Close > position.tp or row.Close < position.sl:
+                # Add profits / losses to capital
+                capital += row.Close * position.n_shares * (1 - COM)
+                # Remove position from active position
+                active_long_positions.remove(position)
+
+        # -- SHORT -- #
+        for position in active_short_positions.copy():
+            # Apply borrow rate to active short positions
+            cover_cost = row.Close * position.n_shares * (1 + COM)
+            position.margin_account -= row.Close * position.n_shares * bar_borrow_rate
+
+            margin_deposit = position.margin_requirement
+            equity = (position.margin_account + margin_deposit) - cover_cost
+
+            # Required Equity
+            required_equity = MAINTENANCE_MARGIN * cover_cost
+
+            # Check Margin call
+            if equity < required_equity:
+                # Margin Call
+                deposit = required_equity - equity
+
+                if capital > deposit:
+                    capital -= deposit
+                else:
+                    # We have to close the position
+                    capital += position.margin_account + position.margin_requirement - cover_cost
+                    active_short_positions.remove(position)
+                    continue
+
+            else:
+                # Stop loss or take profit check
+                if row.Close < position.tp or row.Close > position.sl:
+                    # Add profits / losses to capital
+                    capital += position.margin_account + position.margin_requirement - cover_cost
+                    # Remove position from active position
+                    active_short_positions.remove(position)
+
+        # Check Long Signal
+        if getattr(row, 'buy_signal', False):
+            cost = row.Close * N_SHARES * (1 + COM)
+
+            # Do we have enough cash?
+            if capital > cost:
+                # Discount cash
+                capital -= cost
+                # Add position to portfolio
+                pos = Position(ticker='AAPL', n_shares=N_SHARES, price=row.Close,
+                            sl=row.Close * (1 - STOP_LOSS), tp=row.Close*(1 + TAKE_PROFIT),
+                            margin_account=0, margin_requirement=0)
+                active_long_positions.append(pos)
+
+        # Check Short Signal
+        if getattr(row, 'sell_signal', False):
+            short_value = row.Close * N_SHARES
+            margin_requirement = short_value * INITIAL_MARGIN
+            
+            # Do we have enough cash?
+            if capital > margin_requirement:
+                # Setting up the margin account
+                margin_account = row.Close * N_SHARES * (1 - COM)
+                # Discount cash
+                capital -= margin_requirement
+
+                pos = Position(ticker='AAPL', n_shares=N_SHARES, price=row.Close,
+                            sl=row.Close * (1 + STOP_LOSS), tp=row.Close*(1 - TAKE_PROFIT),
+                            margin_account=margin_account, margin_requirement=margin_requirement)
+                active_short_positions.append(pos)
+
+        # Calculate portfolio value
+        portfolio_value.append(get_portfolio_value(capital, active_long_positions, active_short_positions, row.Close, N_SHARES, COM))
+
+    # At the end of the backtesting, we should close all active positions
+    capital += row.Close * len(active_long_positions) * N_SHARES * (1 - COM)
+
+    for position in active_short_positions:
+        capital += position.margin_account + position.margin_requirement - (row.Close * position.n_shares * (1 + COM))
+
+    active_long_positions = []
+    active_short_positions = []
+
+    return capital, portfolio_value

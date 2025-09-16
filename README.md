@@ -364,6 +364,44 @@ A class to implement the Black-Scholes model for option pricing and delta hedgin
 - put_delta(S, k, r, sigma, T): Computes the delta of a European put option.
 - delta_hedge(info_call, info_put): Computes the total delta of a portfolio of call and put options.
 
+### `backtest_one_indicator(data: pd.DataFrame, COM: float, BORROW_RATE: float, INITIAL_MARGIN: float, MAINTENANCE_MARGIN: float,STOP_LOSS: float, TAKE_PROFIT: float, N_SHARES: int, initial_capital: float, time_frame: float) -> tuple[float, list[float]]:`
+
+**Important**: Dataframe must have a column called 'buy_signal' and another called 'sell_signal' with boolean values as well as the column with the 'Close' prices.
+
+#### Parameters:
+-----------
+- **data** : `pd.DataFrame`
+    A DataFrame containing historical stock prices and buy/sell signals, indexed by date.
+- **COM** : `float`
+    Commission rate per trade (e.g., 0.001 for 0.1% commission).
+- **BORROW_RATE** : `float`
+    Annual borrow rate for short selling (e.g., 0.05 for 5% annual rate).
+- **INITIAL_MARGIN** : `float`
+    Initial margin requirement for short selling (e.g., 0.5 for 50% margin).
+- **MAINTENANCE_MARGIN** : `float`
+    Maintenance margin requirement for short selling (e.g., 0.3 for 30% margin).
+- **STOP_LOSS** : `float`
+    Stop loss percentage (e.g., 0.02 for 2% stop loss).
+- **TAKE_PROFIT** : `float`
+    Take profit percentage (e.g., 0.04 for 4% take profit).
+- **N_SHARES** : `int`
+    Number of shares to trade per signal.
+- **initial_capital** : `float`
+    Initial capital for the backtest.
+- **time_frame** : `float`
+    Time frame of the data in minutes (e.g., 5 for 5-minute bars)
+
+#### Returns:
+--------
+**capital** : `float`
+
+    The final capital after the backtest.
+**portfolio_value** : `list[float]`
+
+    A list containing the portfolio value at each time step.
+
+--------
+
 **Note:** See usage examples for better understanding.
 
 ## Usage Example
@@ -606,6 +644,30 @@ info_put = [[20.3, 20.2, 0.0425, 0.156, 1/12, 12],
 # If N is in millions of dollar, then
 hedge = vt.BlackScholes().delta_hedge(info_call, info_put)
 print(f'Buy {hedge} millions of dollars of the underlying asset')
+```
+
+
+## backtest_one_indicator
+```python
+# We assume that there is dataframe called data with your 'buy_signal', 'sell_signal', and the 'Close' columns
+
+COM: float = 0.125 / 100
+BORROW_RATE: float = 0.25 / 100
+INITIAL_MARGIN = 0.5
+MAINTENANCE_MARGIN = 0.25
+
+# Time frame in minutes
+time_frame: float = 5.0
+
+# DOF
+STOP_LOSS: float = 0.1
+TAKE_PROFIT: float = 0.1
+N_SHARES: int = 50
+
+# Money
+capital: float = 1_000_000
+
+money, portfolio = backtest_one_indicator(data, COM, BORROW_RATE, INITIAL_MARGIN, MAINTENANCE_MARGIN, STOP_LOSS, TAKE_PROFIT, N_SHARES, capital, time_frame)
 ```
 
 
