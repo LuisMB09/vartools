@@ -804,9 +804,7 @@ def backtest_one_indicator(data: pd.DataFrame, COM: float, BORROW_RATE: float, I
             # Apply borrow rate to active short positions
             cover_cost = row.Close * position.n_shares * (1 + COM)
             position.margin_account -= row.Close * position.n_shares * bar_borrow_rate
-
-            margin_deposit = position.margin_requirement
-            equity = (position.margin_account + margin_deposit) - cover_cost
+            equity = position.margin_account + position.margin_requirement - cover_cost
 
             # Required Equity
             required_equity = MAINTENANCE_MARGIN * cover_cost
@@ -815,9 +813,11 @@ def backtest_one_indicator(data: pd.DataFrame, COM: float, BORROW_RATE: float, I
             if equity < required_equity:
                 # Margin Call
                 deposit = required_equity - equity
+                print(f'Margin Call | Equity: {equity:.2f} | Required: {required_equity:.2f}')
 
                 if capital > deposit:
                     capital -= deposit
+                    position.margin_account += deposit
                 else:
                     # We have to close the position
                     capital += position.margin_account + position.margin_requirement - cover_cost
