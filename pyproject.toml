@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vartools"
-version = "0.1.22"
+version = "1.0.1"
 authors = [
   { name = "Luis Márquez", email = "luismaba2004@gmail.com" }
 ]
@@ -12,7 +12,7 @@ maintainers = [
   { name = "Luis Márquez", email = "luismaba2004@gmail.com" }
 ]
 
-description = "A Python library for Value at Risk (VaR) calculations and other financial aplications"
+description = "A Python library for different financial calculations and functions, including Value at Risk (VaR), portfolio optimization, and backtesting."
 readme = "README.md"
 requires-python = ">=3.7"
 license = { text = "GPL-3.0-only" }

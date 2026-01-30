@@ -8,6 +8,29 @@ from scipy.optimize import minimize
 pd.set_option('display.float_format', '{:,.4f}'.format)
 
 
+def get_data(stocks: str | list, start_date: str, end_date: str):
+    """
+    A function to download stock data from Yahoo Finance.
+
+    Parameters
+    -----------
+    stocks : str | list
+        The stock tickers to download.
+    start_date : str
+        The start date for the data.
+    end_date : str
+        The end date for the data.
+
+    Returns:
+    -----------
+    data : DataFrame
+
+        A DataFrame containing the stock data.
+    """
+
+    data=yf.download(stocks, start=start_date, end=end_date)['Close'][stocks]
+    return data
+
 
 def var_stocks(data: pd.DataFrame, n_stocks: list, conf: int | float, long: bool, stocks: list) -> pd.DataFrame:
     """
@@ -36,7 +59,6 @@ def var_stocks(data: pd.DataFrame, n_stocks: list, conf: int | float, long: bool
     Notes: n_stocks and stocks must coincide in lenght and order.
     """
 
-
     data = data.sort_index()
     data = data[stocks]
     rt = data.pct_change().dropna()
@@ -57,7 +79,6 @@ def var_stocks(data: pd.DataFrame, n_stocks: list, conf: int | float, long: bool
     })
 
     return var_stocks_df
-
 
 
 def var_forex(data: pd.DataFrame, positions: list, conf: int | float, long: bool, currencies: list) -> pd.DataFrame:
@@ -108,7 +129,6 @@ def var_forex(data: pd.DataFrame, positions: list, conf: int | float, long: bool
     return var_df
 
 
-
 def rebalance_stocks(w_original: list, target_weights: list, data: pd.DataFrame, stocks: list, portfolio_value: float) -> pd.DataFrame:
     """
     Rebalance a portfolio of stocks to achieve target weights.
@@ -135,40 +155,15 @@ def rebalance_stocks(w_original: list, target_weights: list, data: pd.DataFrame,
 
     data = data.sort_index()
     data = data[stocks]
+    n_stocks = (target_weights - w_original) * portfolio_value / data.iloc[-1]
+
     w_df = pd.DataFrame({
     "Peso Original": w_original,
     "Peso Óptimo": target_weights,
-    "Acciones (C/V)" : np.floor((target_weights-w_original) * portfolio_value / data.iloc[-1])
+    "Acciones (C/V)" : n_stocks
     })
+
     return w_df.T
-
-
-
-def get_data(stocks: str | list, start_date: str, end_date: str, type: str = 'Close'):
-    """
-    A function to download stock data from Yahoo Finance.
-
-    Parameters
-    -----------
-    stocks : str | list
-        The stock tickers to download.
-    start_date : str
-        The start date for the data.
-    end_date : str
-        The end date for the data.
-    type : str
-        The type of data to download (e.g., 'Close', 'Open', 'High', 'Low', 'Adj Close', 'Volume').
-
-    Returns:
-    -----------
-    data : DataFrame
-
-        A DataFrame containing the stock data.
-    """
-
-    data=yf.download(stocks, start=start_date, end=end_date)[type][stocks]
-    return data
-
 
 
 def var_weights(data: pd.DataFrame, weights: list | np.ndarray, conf: int | float) -> float:
@@ -223,206 +218,6 @@ def cvar_weights(data: pd.DataFrame, weights: list | np.ndarray, conf: int | flo
     var = np.percentile(portfolio_returns, 100-conf)
     cvar_pct = np.abs(portfolio_returns[portfolio_returns < var].mean())
     return cvar_pct
-
-
-
-def opt_sharpe(returns, rf):
-
-    mu = (returns.mean() * 252).values
-    sigma = returns.cov().values
-    n_assets = len(mu)
-
-    # Función para minimizar (-Sharpe Ratio)
-    def neg_sharpe_ratio(w, mu, sigma, rf):
-        port_return = np.dot(w, mu)
-        port_vol = np.sqrt(np.dot(w.T, np.dot(sigma, w))) * np.sqrt(252)
-        sharpe_ratio = (port_return - rf) / port_vol
-        return -sharpe_ratio
-    
-    # Restricciones: Suma de pesos = 1
-    constraints = ({
-        'type': 'eq',
-        'fun': lambda w: np.sum(w) - 1
-    })
-
-    # Límites: Pesos entre 0 y 1 (no posiciones cortas)
-    bounds = tuple((0, 1) for _ in range(n_assets))
-
-    # Pesos iniciales (distribuidos uniformemente)
-    w0 = np.array([1 / n_assets] * n_assets)
-
-    # Optimización
-    result = minimize(neg_sharpe_ratio, 
-            w0, 
-            args=(mu, sigma, rf), 
-            method='SLSQP', 
-            bounds=bounds, 
-            constraints=constraints)
-    
-    # Resultados
-    w_opt_sharpe = result.x
-
-    return w_opt_sharpe
-
-
-
-def min_variance(returns: pd.DataFrame) -> np.array:
-    """
-    A function to calculate the minimum variance portfolio.
-
-    Parameters
-    -----------
-    returns : pd.DataFrame
-        A DataFrame containing the returns of the assets in the portfolio.
-
-    Returns:
-    -----------
-    min_var_weights : np.array
-
-        An array containing the weights of the minimum variance portfolio.
-    """
-
-    mu = (returns.mean() * 252).values
-    sigma = returns.cov().values
-    n_assets = len(mu)
-
-    # Función para minimizar (-Sharpe Ratio)
-    def min_var(w, sigma):
-        port_vol = np.sqrt(np.dot(w.T, np.dot(sigma, w))) * np.sqrt(252)
-        return port_vol
-    
-    # Restricciones: Suma de pesos = 1
-    constraints = ({
-        'type': 'eq',
-        'fun': lambda w: np.sum(w) - 1
-    })
-
-    # Límites: Pesos entre 0 y 1 (no posiciones cortas)
-    bounds = tuple((0, 1) for _ in range(n_assets))
-
-    # Pesos iniciales (distribuidos uniformemente)
-    w0 = np.array([1 / n_assets] * n_assets)
-
-    # Optimización
-    result = minimize(min_var, 
-            w0, 
-            args=(sigma), 
-            method='SLSQP', 
-            bounds=bounds, 
-            constraints=constraints)
-    
-    # Resultados
-    min_var_weights = result.x
-
-    return min_var_weights
-
-
-def min_cvar(returns: pd.DataFrame, alpha: float) -> np.array:
-    """
-    A function to calculate the minimum CVaR portfolio.
-
-    Parameters
-    -----------
-    returns : pd.DataFrame
-        A DataFrame containing the returns of the assets in the portfolio.
-    alpha : float
-        The alpha value for the CVaR calculation (e.g., 0.05 for 95% confidence).
-    
-    Returns:
-    -----------
-    min_cvar_weights : np.array
-
-        An array containing the weights of the minimum CVaR portfolio.
-    """
-
-    n_assets = len(returns.columns)
-
-    def portfolio_return(returns, weights):
-        return np.dot(returns, weights)
-
-    # Better way to calculate CVaR than the one used in my homework 1. I used .query in the homework, but checking with friends this way is better.
-    def cvar(portfolio_returns, alpha):
-        var = np.percentile(portfolio_returns, alpha*100)
-        cvar = -portfolio_returns[portfolio_returns < var].mean()
-        return cvar
-
-    def min_cvar(weights, returns, alpha):
-        portfolio_returns = portfolio_return(returns, weights)
-        return cvar(portfolio_returns, alpha)
-
-    constraints = [
-        {"type": "eq", "fun": lambda w: np.sum(w) - 1},
-    ]
-    bounds = tuple((0, 1) for _ in range(n_assets))
-
-    # Initial guess
-    initial_weights = np.ones(n_assets) / n_assets
-
-    result_min_cvar = minimize(
-        fun=min_cvar,
-        x0=initial_weights,
-        args=(returns, alpha),
-        method="SLSQP",
-        bounds=bounds,
-        constraints=constraints,
-        tol=1e-8
-    )
-    min_cvar_weights = result_min_cvar.x
-
-    return min_cvar_weights
-
-
-def mcc_portfolio(returns: pd.DataFrame, alpha: float) -> np.array:
-    """
-    A function to calculate the Minimum CVaR Concentration portfolio.
-
-    Parameters
-    -----------
-    returns : pd.DataFrame
-        A DataFrame containing the returns of the assets in the portfolio.
-    alpha : float
-        The alpha value for the CVaR calculation (e.g., 0.05 for 95% confidence).
-
-    Returns:
-    -----------
-    mcc_weights : np.array
-
-        An array containing the weights of the Minimum CVaR Concentration portfolio.
-    """
-
-    n_assets = len(returns.columns)
-
-    def portfolio_return(returns, weights):
-        return np.dot(returns, weights)
-
-    def individual_cvar_contributions(weights, returns, alpha):
-        portfolio_returns = portfolio_return(returns, weights)
-        var = np.percentile(portfolio_returns, alpha * 100)
-
-        bad_days_portfolio = portfolio_returns < var
-        contributions = [-returns.iloc[:, i][bad_days_portfolio].mean() * weights[i] for i in range(n_assets)]
-        
-        return contributions
-
-    def optimal_mcc(weights, returns, alpha):
-        return np.max(individual_cvar_contributions(weights, returns, alpha))
-
-    constraints = [{"type": "eq", "fun": lambda w: np.sum(w) - 1}]
-    bounds = tuple((0, 1) for _ in range(n_assets))
-    initial_weights = np.ones(n_assets) / n_assets
-
-    result = minimize(
-        fun=optimal_mcc,
-        x0=initial_weights,
-        args=(returns, alpha),
-        method="SLSQP",
-        bounds=bounds,
-        constraints=constraints,
-        tol=1e-8
-    )
-    mcc_weights = result.x
-
-    return mcc_weights
 
 
 def cvar_contributions(weights: list | np.ndarray, returns: pd.DataFrame, alpha: float) -> list:
@@ -498,6 +293,94 @@ def plot_weights(stocks: list, weights: list | np.ndarray):
     plt.pie(values, labels=labels, autopct='%1.2f%%', startangle=90, colors=custom_colors)
     plt.title("Portfolio Weights")
     plt.show()
+
+
+def var_apl(data: pd.DataFrame, posiciones: list | np.ndarray, conf: float, long: bool):
+    """ 
+    A function that calculates the Value at Risk (VaR) and Conditional Value at Risk (CVaR) adjusted by liquidity cost for a portfolio.
+
+    Parameters
+    -----------
+    data : pd.DataFrame
+        A DataFrame containing historical exchange rates, indexed by date.
+    posiciones : list | np.ndarray
+        A list of positions for each currency.
+    conf : float
+        The confidence level for the VaR calculation (e.g., 95 for 95% confidence).
+    long : bool
+        Indicates the position type:
+        - 1 for long positions
+        - 0 for short positions
+
+    Returns:
+    -----------
+    resultados : pd.DataFrame
+
+        A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
+    """
+
+    data = data.sort_index()
+
+    # Bid y Ask
+    bid_columns = [col for col in data.columns if 'Bid' in col] # Selecciona las columnas que contienen 'Bid'
+    ask_columns = [col for col in data.columns if 'Ask' in col] # Selecciona las columnas que contienen 'Ask'
+
+    # Mid
+    mid_columns = [f'Mid.{i}' for i in range(len(bid_columns))] # Se crea una lista con los nombres de las columnas de Mid
+    data[mid_columns] = (data[bid_columns].values + data[ask_columns].values) / 2
+
+    # Spreads
+    spread_columns = [f'Spread.{i}' for i in range(len(bid_columns))] # Se crea una lista con los nombres de las columnas de Spread
+    data[spread_columns] = (data[ask_columns].values - data[bid_columns].values) / data[mid_columns].values
+
+    # Returns
+    return_columns = [f'Return.{i}' for i in range(len(mid_columns))] # Se crea una lista con los nombres de las columnas de Return
+    data[return_columns] = data[mid_columns].pct_change()
+
+    # Weights
+    value = posiciones * data[mid_columns].iloc[-1].values
+    pv = np.sum(value)
+    w = value / pv
+
+    # Portfolio return
+    data['port_ret'] = np.dot(data[return_columns], w)
+
+    # VaR calculation
+    var_pct = np.percentile(data['port_ret'].dropna(), 100 - conf*100) if long else np.percentile(data['port_ret'].dropna(), conf*100)
+    var_cash = pv * var_pct
+
+    # C-VaR calculation
+    cvar_pct = data['port_ret'][data['port_ret'] < var_pct].dropna().mean() if long else data['port_ret'][data['port_ret'] > var_pct].dropna().mean()
+    cvar_cash = pv * cvar_pct
+
+    # Liquidity cost
+    cl_prom = data[spread_columns].mean()
+    cl_estr = np.percentile(data[spread_columns], 99, axis=0)
+
+    # VaR adjusted by liquidity cost
+
+    var_apl_prom, var_apl_estr = np.abs(((var_pct - np.dot(w, cl_prom), var_pct - np.dot(w, cl_estr)) if long 
+                                else (var_pct + np.dot(w, cl_prom), var_pct + np.dot(w, cl_estr))))
+
+    var_apl_prom_cash, var_apl_estr_cash = np.abs(((var_cash - np.dot(value, cl_prom), var_cash - np.dot(value, cl_estr)) if long 
+                                            else (var_cash + np.dot(value, cl_prom), var_cash + np.dot(value, cl_estr))))
+    
+    # C-VaR adjusted by liquidity cost
+
+    cvar_apl_prom, cvar_apl_estr = np.abs(((cvar_pct - np.dot(w, cl_prom), cvar_pct - np.dot(w, cl_estr)) if long
+                                    else (cvar_pct + np.dot(w, cl_prom), cvar_pct + np.dot(w, cl_estr))))
+    
+    cvar_apl_prom_cash, cvar_apl_estr_cash = np.abs(((cvar_cash - np.dot(value, cl_prom), cvar_cash - np.dot(value, cl_estr)) if long
+                                            else (cvar_cash + np.dot(value, cl_prom), cvar_cash + np.dot(value, cl_estr))))
+
+    resultados = pd.DataFrame({
+        'Métrica': ['VaR', 'VaR Ajustado Promedio', 'VaR Ajustado Estresado', 'C-VaR', 'C-VaR Ajustado Promedio', 'C-VaR Ajustado Estresado'],
+        'Porcentaje': [np.abs(var_pct), var_apl_prom, var_apl_estr, np.abs(cvar_pct), cvar_apl_prom, cvar_apl_estr],
+        'Cash': [np.abs(var_cash), var_apl_prom_cash, var_apl_estr_cash, np.abs(cvar_cash), cvar_apl_prom_cash, cvar_apl_estr_cash]
+    })
+
+    return resultados
+
 
 class BlackScholes:
     def __init__(self):
@@ -628,251 +511,305 @@ class BlackScholes:
             
         return np.dot(df_call['N'], df_call['delta']) - np.dot(df_put['N'], df_put['delta'])
 
-def var_apl(data: pd.DataFrame, posiciones: list | np.ndarray, conf: float, long: bool):
-    """ 
-    A function that calculates the Value at Risk (VaR) and Conditional Value at Risk (CVaR) adjusted by liquidity cost for a portfolio.
 
-    Parameters
-    -----------
-    data : pd.DataFrame
-        A DataFrame containing historical exchange rates, indexed by date.
-    posiciones : list | np.ndarray
-        A list of positions for each currency.
-    conf : float
-        The confidence level for the VaR calculation (e.g., 95 for 95% confidence).
-    long : bool
-        Indicates the position type:
-        - 1 for long positions
-        - 0 for short positions
+class OptimizePortfolioWeights:
+    """
+    A class to optimize portfolio weights using various methods. The optimization strategies include:
+        - Minimum Variance
+        - Maximum Sharpe Ratio
+        - Minimum Target Semivariance
+        - Maximum Omega
+        - Minimum CVaR
+        - Minimum CVaR Contribution (MCC)
+    """
+
+    def __init__(self, returns: pd.DataFrame, risk_free: float):
+
+        self.rets = returns
+        self.cov = returns.cov()
+        self.rf = risk_free / 252
+        self.n_stocks = len(returns.columns)
+
+    # Min Variance
+    def opt_min_var(self):
+
+        def var(w): return w.T @ self.cov @ w
+
+        w0 = np.ones(self.n_stocks)/self.n_stocks
+
+        bounds = [(0, 1)] * self.n_stocks
+
+        def constraint(w): return sum(w)-1
+
+        result = minimize(fun=var, x0=w0, bounds=bounds,
+                          constraints={'fun': constraint, 'type': 'eq'},
+                          tol=1e-16)
+
+        return result.x
+
+    # Sharpe Ratio
+    def opt_max_sharpe(self):
+        rets = self.rets
+        rend, cov, rf = self.rets.mean(), self.cov, self.rf
+
+        def sr(w): return -((np.dot(rend, w) - rf) /
+                            ((w.reshape(-1, 1).T @ cov @ w) ** 0.5))
+
+        result = minimize(sr, np.ones(len(rets.T)), bounds=[(0, None)] * len(rets.T),
+                          constraints={'fun': lambda w: sum(
+                              w) - 1, 'type': 'eq'},
+                          tol=1e-16)
+
+        return result.x
+
+    # Semivariance method
+    def opt_min_semivar(self, rets_benchmark):
+
+        rets, corr = self.rets.copy(), self.rets.corr()
+
+        diffs = rets-rets_benchmark.values
+
+        below_zero_target = diffs[diffs < 0].fillna(0)
+        target_downside = np.array(below_zero_target.std())
+
+        target_semivariance = np.multiply(target_downside.reshape(
+            len(target_downside), 1), target_downside) * corr
+
+        def semivar(w): return w.T @ target_semivariance @ w
+
+        w0 = np.ones(self.n_stocks)/self.n_stocks
+
+        bounds = [(0, 3)] * self.n_stocks
+
+        def constraint(w): return sum(w)-1
+
+        result = minimize(fun=semivar, x0=w0, bounds=bounds,
+                          constraints={'fun': constraint, 'type': 'eq'}, tol=1e-16)
+
+        return result.x
+
+    # Omega
+    def opt_max_omega(self, rets_benchmark):
+
+        rets = self.rets.copy()
+
+        diffs = rets-rets_benchmark.values
+
+        below_zero_target = diffs[diffs < 0].fillna(0)
+        above_zero_target = diffs[diffs > 0].fillna(0)
+
+        target_downside = np.array(below_zero_target.std())
+        target_upside = np.array(above_zero_target.std())
+        o = target_upside/target_downside
+
+        def omega(w): return -sum(o * w)
+
+        w0 = np.ones(self.n_stocks)/self.n_stocks
+
+        bounds = [(0, 3)] * self.n_stocks
+
+        def constraint(w): return sum(w)-1
+
+        result = minimize(fun=omega, x0=w0, bounds=bounds,
+                          constraints={'fun': constraint, 'type': 'eq'}, tol=1e-16)
+
+        return result.x
+    
+    # Min CVaR
+    def opt_min_cvar(self, alpha):
+
+        returns = self.rets.values
+
+        def portfolio_returns(w):
+            return returns @ w
+
+        def cvar_objective(w):
+            pr = portfolio_returns(w)
+
+            # Low percentile of returns (left tail)
+            var = np.percentile(pr, (1 - alpha) * 100)
+
+            # CVaR as mean of worst returns
+            return -pr[pr <= var].mean()
+
+        w0 = np.ones(self.n_stocks) / self.n_stocks
+        bounds = [(0, 1)] * self.n_stocks
+        constraints = [{"type": "eq", "fun": lambda w: np.sum(w) - 1}]
+
+        result = minimize(
+            fun=cvar_objective,
+            x0=w0,
+            method="SLSQP",
+            bounds=bounds,
+            constraints=constraints,
+            tol=1e-8
+        )
+
+        return result.x
+    
+    # MCC Portfolio
+    def opt_mcc(self, alpha):
+
+        returns = self.rets
+        n_assets = self.n_stocks
+
+        def portfolio_returns(w):
+            return returns.values @ w
+
+        def individual_cvar_contributions(w):
+            pr = portfolio_returns(w)
+
+            # Low percentile of returns (left tail)
+            var = np.percentile(pr, (1 - alpha) * 100)
+
+            bad_days = pr <= var
+
+            # Individual CVaR contributions
+            contributions = [
+                -returns.iloc[bad_days, i].mean() * w[i]
+                for i in range(n_assets)
+            ]
+
+            return contributions
+
+        def objective(w):
+            return np.max(individual_cvar_contributions(w))
+
+        w0 = np.ones(n_assets) / n_assets
+        bounds = [(0, 1)] * n_assets
+        constraints = [{"type": "eq", "fun": lambda w: np.sum(w) - 1}]
+
+        result = minimize(
+            fun=objective,
+            x0=w0,
+            method="SLSQP",
+            bounds=bounds,
+            constraints=constraints,
+            tol=1e-8
+        )
+
+        return result.x
+    
+
+class DynamicBacktesting(OptimizePortfolioWeights):
+    """
+    A class to perform dynamic backtesting of portfolio optimization strategies over a specified time horizon.
+
+    Args:
+        OptimizePortfolioWeights (Class): A class that provides various portfolio optimization methods.
 
     Returns:
-    -----------
-    resultados : pd.DataFrame
-
-        A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
-    """
-
-    data = data.sort_index()
-
-    # Bid y Ask
-    bid_columns = [col for col in data.columns if 'Bid' in col] # Selecciona las columnas que contienen 'Bid'
-    ask_columns = [col for col in data.columns if 'Ask' in col] # Selecciona las columnas que contienen 'Ask'
-
-    # Mid
-    mid_columns = [f'Mid.{i}' for i in range(len(bid_columns))] # Se crea una lista con los nombres de las columnas de Mid
-    data[mid_columns] = (data[bid_columns].values + data[ask_columns].values) / 2
-
-    # Spreads
-    spread_columns = [f'Spread.{i}' for i in range(len(bid_columns))] # Se crea una lista con los nombres de las columnas de Spread
-    data[spread_columns] = (data[ask_columns].values - data[bid_columns].values) / data[mid_columns].values
-
-    # Returns
-    return_columns = [f'Return.{i}' for i in range(len(mid_columns))] # Se crea una lista con los nombres de las columnas de Return
-    data[return_columns] = data[mid_columns].pct_change()
-
-    # Weights
-    value = posiciones * data[mid_columns].iloc[-1].values
-    pv = np.sum(value)
-    w = value / pv
-
-    # Portfolio return
-    data['port_ret'] = np.dot(data[return_columns], w)
-
-    # VaR calculation
-    var_pct = np.percentile(data['port_ret'].dropna(), 100 - conf*100) if long else np.percentile(data['port_ret'].dropna(), conf*100)
-    var_cash = pv * var_pct
-
-    # C-VaR calculation
-    cvar_pct = data['port_ret'][data['port_ret'] < var_pct].dropna().mean() if long else data['port_ret'][data['port_ret'] > var_pct].dropna().mean()
-    cvar_cash = pv * cvar_pct
-
-    # Liquidity cost
-    cl_prom = data[spread_columns].mean()
-    cl_estr = np.percentile(data[spread_columns], 99, axis=0)
-
-    # VaR adjusted by liquidity cost
-
-    var_apl_prom, var_apl_estr = np.abs(((var_pct - np.dot(w, cl_prom), var_pct - np.dot(w, cl_estr)) if long 
-                                else (var_pct + np.dot(w, cl_prom), var_pct + np.dot(w, cl_estr))))
-
-    var_apl_prom_cash, var_apl_estr_cash = np.abs(((var_cash - np.dot(value, cl_prom), var_cash - np.dot(value, cl_estr)) if long 
-                                            else (var_cash + np.dot(value, cl_prom), var_cash + np.dot(value, cl_estr))))
-    
-    # C-VaR adjusted by liquidity cost
-
-    cvar_apl_prom, cvar_apl_estr = np.abs(((cvar_pct - np.dot(w, cl_prom), cvar_pct - np.dot(w, cl_estr)) if long
-                                    else (cvar_pct + np.dot(w, cl_prom), cvar_pct + np.dot(w, cl_estr))))
-    
-    cvar_apl_prom_cash, cvar_apl_estr_cash = np.abs(((cvar_cash - np.dot(value, cl_prom), cvar_cash - np.dot(value, cl_estr)) if long
-                                            else (cvar_cash + np.dot(value, cl_prom), cvar_cash + np.dot(value, cl_estr))))
-
-    resultados = pd.DataFrame({
-        'Métrica': ['VaR', 'VaR Ajustado Promedio', 'VaR Ajustado Estresado', 'C-VaR', 'C-VaR Ajustado Promedio', 'C-VaR Ajustado Estresado'],
-        'Porcentaje': [np.abs(var_pct), var_apl_prom, var_apl_estr, np.abs(cvar_pct), cvar_apl_prom, cvar_apl_estr],
-        'Cash': [np.abs(var_cash), var_apl_prom_cash, var_apl_estr_cash, np.abs(cvar_cash), cvar_apl_prom_cash, cvar_apl_estr_cash]
-    })
-
-    return resultados
-@dataclass
-class Position:
-    """ 
-    A cool representation of a position
-    """
-    ticker: str
-    n_shares: int
-    price: float
-    sl: float
-    tp: float
-    margin_account: float
-    margin_requirement: float
-
-def get_portfolio_value(cash: float, long_ops: list[Position], short_ops: list[Position], current_price: float, n_shares: int, COM: float) -> float:
-    val = cash
-
-    # Add long positions value
-    val += len(long_ops) * current_price * n_shares
-
-    # Add short positions equity (margin_account + margin_requirement - cost to cover)
-    for pos in short_ops:
-        cover_cost = current_price * pos.n_shares * (1 + COM)  # include commission
-        val += pos.margin_account + pos.margin_requirement - cover_cost
-
-    return val
-
-def backtest_one_indicator(data: pd.DataFrame, COM: float, BORROW_RATE: float, INITIAL_MARGIN: float, MAINTENANCE_MARGIN: float, 
-                           STOP_LOSS: float, TAKE_PROFIT: float, N_SHARES: int, initial_capital: float, time_frame: float) -> tuple[float, list[float]]:
-    """
-    A function to backtest a trading strategy based on buy and sell signals.
-
-    **Important**: Dataframe must have a column called 'buy_signal' and another called 'sell_signal' 
-    with boolean values as well as the column with the 'Close' prices.
-
-    Parameters
-    -----------
-    data : pd.DataFrame
-        A DataFrame containing historical stock prices and buy/sell signals, indexed by date.
-    COM : float
-        Commission rate per trade (e.g., 0.001 for 0.1% commission).
-    BORROW_RATE : float
-        Annual borrow rate for short selling (e.g., 0.05 for 5% annual rate).
-    INITIAL_MARGIN : float
-        Initial margin requirement for short selling (e.g., 0.5 for 50% margin).
-    MAINTENANCE_MARGIN : float
-        Maintenance margin requirement for short selling (e.g., 0.3 for 30% margin).
-    STOP_LOSS : float
-        Stop loss percentage (e.g., 0.02 for 2% stop loss).
-    TAKE_PROFIT : float
-        Take profit percentage (e.g., 0.04 for 4% take profit).
-    N_SHARES : int
-        Number of shares to trade per signal.
-    initial_capital : float
-        Initial capital for the backtest.
-    time_frame : float
-        Time frame of the data in minutes (e.g., 5 for 5-minute bars)
-
-    Returns:
-    -----------
-    capital : float
-
-        The final capital after the backtest.
-    portfolio_value : list[float]
-
-        A list containing the portfolio value at each time step.
+        A class that performs dynamic backtesting of portfolio optimization strategies.
     """
     
-    capital = initial_capital
-    portfolio_value = [capital]
-    active_long_positions: list[Position] = []
-    active_short_positions: list[Position] = []
-    
-    bars_per_year = 252 * 6.5 * 60 / time_frame  # 252 trading days, 6.5 hours per day, 5-min bars
-    bar_borrow_rate = (1 + BORROW_RATE) ** (1 / bars_per_year) - 1
+    # Definir las variables que necesitamos dentro de todas las funciones
+    def __init__(self, prices, prices_benchmark, capital, rf, months, alpha=0.95):
+        self.prices = prices # Atributo para los precios que se almacena en self 
+        self.prices_benchmark = prices_benchmark # Atributo para los precios del benchmark que se almacena en self 
+        self.months = months # Atributo para los meses que se almacena en self 
+        self.capital = capital # Atributos para el capital que se almacena en self 
+        self.rf = rf  # Atributa de tasa libre riesgo que se almacena en self 
+        self.alpha = alpha # Atributo alpha para CVaR que se almacena en self
 
-    for i, row in data.iterrows():
-        # -- LONG -- #
-        # Check active orders
-        for position in active_long_positions.copy():
-            # Stop loss or take profit check
-            if row.Close > position.tp or row.Close < position.sl:
-                # Add profits / losses to capital
-                capital += row.Close * position.n_shares * (1 - COM)
-                # Remove position from active position
-                active_long_positions.remove(position)
+        # Inicialización dummy del optimizador (se sobreescribe dinámicamente)
+        super().__init__(returns=pd.DataFrame(), risk_free=rf)
+        
+    # Clase para optimizar los pesos
+    def optimize_weights(self, prices: pd.DataFrame, n_days: int, periods: int):
+        
+        # Extrae el subconjunto de precios actual para el periodo de optimización
+        temp_data = prices.iloc[int(n_days * periods):int(n_days * (periods + 1)), :]   
+        
+        #Extrae el subconjunto de precios del benchmark para el periodo de optimización
+        temp_bench = self.prices_benchmark.copy().iloc[int(n_days * periods):int(n_days * (periods + 1)), :]    
+        
+        # Calcula los rendimientientos del periodo de optimización
+        temp_rets = temp_data.pct_change().dropna()  
 
-        # -- SHORT -- #
-        for position in active_short_positions.copy():
-            # Apply borrow rate to active short positions
-            cover_cost = row.Close * position.n_shares * (1 + COM)
-            position.margin_account -= row.Close * position.n_shares * bar_borrow_rate
-            equity = position.margin_account + position.margin_requirement - cover_cost
+        rets_benchmark = temp_bench.pct_change().dropna() # Calcula los rendimientos del benchmark para el periodo de optimización
 
-            # Required Equity
-            required_equity = MAINTENANCE_MARGIN * cover_cost
+        # --- ACTUALIZACIÓN DEL ESTADO DEL OPTIMIZADOR (HERENCIA) --- #
+        self.rets = temp_rets
+        self.cov = temp_rets.cov()
+        self.n_stocks = temp_rets.shape[1]
 
-            # Check Margin call
-            if equity < required_equity:
-                # Margin Call
-                deposit = required_equity - equity
-                print(f'Margin Call | Equity: {equity:.2f} | Required: {required_equity:.2f}')
+        w_minvar = self.opt_min_var()
+        w_sharpe = self.opt_max_sharpe()
+        w_semivar = self.opt_min_semivar(rets_benchmark)
+        w_omega = self.opt_max_omega(rets_benchmark)
+        w_min_cvar = self.opt_min_cvar(self.alpha)
+        w_mcc = self.opt_mcc(self.alpha)
 
-                if capital > deposit:
-                    capital -= deposit
-                    position.margin_account += deposit
-                else:
-                    # We have to close the position
-                    capital += position.margin_account + position.margin_requirement - cover_cost
-                    active_short_positions.remove(position)
-                    continue
+        # Se devuelven los pesos de los metodos de optimización
+        return w_minvar, w_sharpe, w_semivar, w_omega, w_min_cvar, w_mcc
 
-            else:
-                # Stop loss or take profit check
-                if row.Close < position.tp or row.Close > position.sl:
-                    # Add profits / losses to capital
-                    capital += position.margin_account + position.margin_requirement - cover_cost
-                    # Remove position from active position
-                    active_short_positions.remove(position)
+    def simulation(self):
+        
+        # Son los días redondeados a 0 decimales , son los numero de dias del periodo de la simulación/bt
+        n_days = round(len(self.prices) / round(len(self.prices) / 252 / (self.months / 12)), 0) 
+        
+        # Es el capital inicial de la simulación/bt
+        capital = self.capital  
 
-        # Check Long Signal
-        if getattr(row, 'buy_signal', False):
-            cost = row.Close * N_SHARES * (1 + COM)
-
-            # Do we have enough cash?
-            if capital > cost:
-                # Discount cash
-                capital -= cost
-                # Add position to portfolio
-                pos = Position(ticker='AAPL', n_shares=N_SHARES, price=row.Close,
-                            sl=row.Close * (1 - STOP_LOSS), tp=row.Close*(1 + TAKE_PROFIT),
-                            margin_account=0, margin_requirement=0)
-                active_long_positions.append(pos)
-
-        # Check Short Signal
-        if getattr(row, 'sell_signal', False):
-            short_value = row.Close * N_SHARES
-            margin_requirement = short_value * INITIAL_MARGIN
+        # Se hace una copia de los precios y se extrae el subconjunto de los precios para el period de optimización
+        opt_data = self.prices.copy().iloc[:int(n_days), :]    
+        
+        # Se hace una copia de los precios y se extrae el subconjunto de los precios para el periodo de simulación/bt
+        backtesting_data = self.prices.copy().iloc[int(n_days):, :] 
+        
+        # Se calculan los rendimientos del periodo de simulación/bt
+        backtesting_rets = backtesting_data.pct_change().dropna() 
+        
+        # Se hace una copia de los precios de benchmark y se extrae el subconjunto de los precios para el periodo y se calculan los rendimientos 
+        backtesting_bench = self.prices_benchmark.copy().iloc[int(n_days):, :].pct_change().dropna() 
+        
+        # Se inicializa los contadores de los días y de los periodos 
+        day_counter, periods_counter = 0, 0 
+        
+        # Lista para almacenar el capital a lo largo del tiempo para estrategia 
+        minvar, sharpe, semivar, omega, min_cvar, mcc = [capital], [capital], [capital], [capital], [capital], [capital]
+        
+        # Se obtienne los pesos optimizados
+        w_minvar, w_sharpe, w_semivar, w_omega, w_min_cvar, w_mcc = self.optimize_weights(opt_data, n_days, 0) 
+        
+        # Se itera dia a dia para 
+        for day in range(len(backtesting_data) - 1): 
             
-            # Do we have enough cash?
-            if capital > margin_requirement:
-                # Setting up the margin account
-                margin_account = row.Close * N_SHARES * (1 - COM)
-                # Discount cash
-                capital -= margin_requirement
+            # Si el contador de dias es menor al numero de didas de optmización , hace: 
+            if day_counter < n_days: 
 
-                pos = Position(ticker='AAPL', n_shares=N_SHARES, price=row.Close,
-                            sl=row.Close * (1 + STOP_LOSS), tp=row.Close*(1 - TAKE_PROFIT),
-                            margin_account=margin_account, margin_requirement=margin_requirement)
-                active_short_positions.append(pos)
+                sharpe.append(sharpe[-1] * (1 + sum(backtesting_rets.iloc[day, :] * w_sharpe)))  
+                minvar.append(minvar[-1] * (1 + sum(backtesting_rets.iloc[day, :] * w_minvar)))
+                semivar.append(semivar[-1] * (1 + sum(backtesting_rets.iloc[day, :] * w_semivar)))
+                omega.append(omega[-1] * (1 + sum(backtesting_rets.iloc[day, :] * w_omega)))
+                min_cvar.append(min_cvar[-1] * (1 + sum(backtesting_rets.iloc[day, :] * w_min_cvar)))
+                mcc.append(mcc[-1] * (1 + sum(backtesting_rets.iloc[day, :] * w_mcc)))
+            else:
+                
+                w_minvar, w_sharpe, w_semivar, w_omega, w_min_cvar, w_mcc = self.optimize_weights(backtesting_data, n_days, periods_counter)
+                    
+                sharpe.append(sharpe[-1] * (1 + sum(backtesting_rets.iloc[day, :] * w_sharpe)))
+                minvar.append(minvar[-1] * (1 + sum(backtesting_rets.iloc[day, :] * w_minvar)))
+                semivar.append(semivar[-1] * (1 + sum(backtesting_rets.iloc[day, :] * w_semivar)))
+                omega.append(omega[-1] * (1 + sum(backtesting_rets.iloc[day, :] * w_omega)))
+                min_cvar.append(min_cvar[-1] * (1 + sum(backtesting_rets.iloc[day, :] * w_min_cvar)))
+                mcc.append(mcc[-1] * (1 + sum(backtesting_rets.iloc[day, :] * w_mcc)))
+                periods_counter += 1
+                day_counter = 0
 
-        # Calculate portfolio value
-        portfolio_value.append(get_portfolio_value(capital, active_long_positions, active_short_positions, row.Close, N_SHARES, COM))
+            day_counter += 1
+        
+        # Crear DataFrame con los resultados de la simulación/bt
+        df = pd.DataFrame()
+        df['Date'] = backtesting_data.index
+        df['Date'] = pd.to_datetime(df['Date'])
+        df['Min Variance'] = minvar
+        df['Sharpe'] = sharpe
+        df['Semivariance'] = semivar
+        df['Omega'] = omega
+        df['Min CVaR'] = min_cvar
+        df['MCC'] = mcc
+        df.set_index('Date', inplace=True)
 
-    # At the end of the backtesting, we should close all active positions
-    capital += row.Close * len(active_long_positions) * N_SHARES * (1 - COM)
-
-    for position in active_short_positions:
-        capital += position.margin_account + position.margin_requirement - (row.Close * position.n_shares * (1 + COM))
-
-    active_long_positions = []
-    active_short_positions = []
-
-    return capital, portfolio_value
+        return df
+    

@@ -1,4 +1,4 @@
-# VaR Calculation Library
+# Financial Calculations Library
 
 ## Overview
 This Python library provides functions to calculate the **Value at Risk (VaR)** and **Conditional Value at Risk (cVaR)** for financial portfolios, including stock and forex portfolios. These risk measures help in understanding potential losses under given confidence levels. It also allows you to conveniently download price data from Yahoo Finance and perform portfolio optimization using multiple strategies.
@@ -11,6 +11,7 @@ This Python library provides functions to calculate the **Value at Risk (VaR)** 
 - Outputs results in both **percentage** and **cash value**.
 - Rebalance a **stock portfolio**.
 - Portfolio optimization for multiple strategies.
+- Dynamic portfolio backtest.
 
 ## Installation
 Ensure you have the required dependencies installed:
@@ -38,7 +39,7 @@ To get the latest version.
 
 ## Functions
 
-### `get_data(stocks, start_date, end_date, type)`
+### `get_data(stocks, start_date, end_date)`
 
 A function to download stock data from Yahoo Finance.
 
@@ -53,9 +54,6 @@ A function to download stock data from Yahoo Finance.
 - **end_date** : `str`
 
     The end date for the data in the format `YYYY-MM-DD`.
-- **type** : `str`
-
-    The type of data to download (e.g., `"Close"`).
 
 #### Returns:
 --------
@@ -232,83 +230,6 @@ The CVaR value for the portfolio.
 --------
 
 
-### `opt_sharpe(returns, rf)`
-
-#### Parameters
-- **returns** (*pd.DataFrame*): DataFrame containing the daily returns of the stock prices.
-- **rf**: One-year risk-free rate
-
-#### Returns
-It returns a vector with the optimal weight for each stock.
-
---------
-
-
-### `min_variance(returns)`
-
-A function to calculate the minimum variance portfolio.
-
-#### Parameters:
------------
-- **returns** : `pd.DataFrame`
-
-    A DataFrame containing the returns of the assets in the portfolio.
-
-#### Returns:
---------
-**min_var_weights** : `np.array`
-
-An array containing the weights of the minimum variance portfolio.
-
---------
-
-
-### `min_cvar(returns, alpha)`
-
-A function to calculate the minimum CVaR portfolio.
-
-#### Parameters:
------------
-- **returns** : `pd.DataFrame`
-
-    A DataFrame containing the returns of the assets in the portfolio.
-- **alpha** : `float`
-
-    The alpha value for the CVaR calculation (e.g., 0.05 for 95% confidence).
-
-#### Returns:
---------
-**min_cvar_weights** : `np.array`
-
-**Note:** It is required to write alpha in decimal notation, also this portfolio strategy only works for long positions.
-
---------
-
-
-### `mcc_portfolio(returns, alpha)`
-
-A function to calculate the Minimum CVaR Concentration portfolio.
-
-#### Parameters:
------------
-- **returns** : `pd.DataFrame`
-
-    A DataFrame containing the returns of the assets in the portfolio.
-- **alpha** : `float`
-
-    The alpha value for the CVaR calculation (e.g., 0.05 for 95% confidence).
-
-#### Returns:
---------
-**mcc_weights** : `np.array`
-
-An array containing the weights of the Minimum CVaR Concentration portfolio.
-
-**Note:** It is required to write alpha in decimal notation, also this portfolio strategy only works for long positions.
-
---------
-
-
 ### `def cvar_contributions(weights, returns, alpha)`
 
 A function to calculate the CVaR contributions of each asset in a portfolio.
@@ -364,46 +285,67 @@ A class to implement the Black-Scholes model for option pricing and delta hedgin
 - put_delta(S, k, r, sigma, T): Computes the delta of a European put option.
 - delta_hedge(info_call, info_put): Computes the total delta of a portfolio of call and put options.
 
-### `backtest_one_indicator(data: pd.DataFrame, COM: float, BORROW_RATE: float, INITIAL_MARGIN: float, MAINTENANCE_MARGIN: float,STOP_LOSS: float, TAKE_PROFIT: float, N_SHARES: int, initial_capital: float, time_frame: float) -> tuple[float, list[float]]:`
+-----
 
-**Important**: Dataframe must have a column called 'buy_signal' and another called 'sell_signal' with boolean values as well as the column with the 'Close' prices.
 
-#### Parameters:
------------
-- **data** : `pd.DataFrame`
-    A DataFrame containing historical stock prices and buy/sell signals, indexed by date.
-- **COM** : `float`
-    Commission rate per trade (e.g., 0.001 for 0.1% commission).
-- **BORROW_RATE** : `float`
-    Annual borrow rate for short selling (e.g., 0.05 for 5% annual rate).
-- **INITIAL_MARGIN** : `float`
-    Initial margin requirement for short selling (e.g., 0.5 for 50% margin).
-- **MAINTENANCE_MARGIN** : `float`
-    Maintenance margin requirement for short selling (e.g., 0.3 for 30% margin).
-- **STOP_LOSS** : `float`
-    Stop loss percentage (e.g., 0.02 for 2% stop loss).
-- **TAKE_PROFIT** : `float`
-    Take profit percentage (e.g., 0.04 for 4% take profit).
-- **N_SHARES** : `int`
-    Number of shares to trade per signal.
-- **initial_capital** : `float`
-    Initial capital for the backtest.
-- **time_frame** : `float`
-    Time frame of the data in minutes (e.g., 5 for 5-minute bars)
+### `OptimizePortfolioWeights`
 
-#### Returns:
---------
-**capital** : `float`
+A class to optimize portfolio asset weights using multiple quantitative portfolio construction techniques based on risk, return, and downside risk measures.
 
-The final capital after the backtest.
+The class supports classical mean–variance optimization as well as downside-risk and tail-risk–based methods commonly used in quantitative finance.
 
-**portfolio_value** : `list[float]`
+#### Methods:
 
-A list containing the portfolio value at each time step.
+---
 
---------
+* **opt_min_var()**
+  Computes the portfolio weights that minimize total portfolio variance subject to full investment and minimum weight constraints.
+
+* **opt_max_sharpe()**
+  Computes the portfolio weights that maximize the Sharpe Ratio using expected returns, the covariance matrix, and a risk-free rate.
+
+* **opt_min_semivar(rets_benchmark)**
+  Computes portfolio weights that minimize target semivariance relative to a benchmark return series, focusing on downside deviations only.
+
+* **opt_max_omega(rets_benchmark)**
+  Computes portfolio weights that maximize the Omega ratio by balancing upside variability against downside variability relative to a benchmark.
+
+* **opt_min_cvar(alpha)**
+  Computes portfolio weights that minimize Conditional Value at Risk (CVaR) at a specified confidence level using historical return simulations.
+
+* **opt_mcc(alpha)**
+  Computes portfolio weights that minimize the maximum individual asset contribution to portfolio CVaR (Minimum CVaR Contribution), promoting tail-risk diversification.
+
+-----
+
+
+### `DynamicBacktesting`
+
+A class to perform dynamic (rolling) backtesting of portfolio optimization strategies over time, using periodic re-optimization of portfolio weights based on historical price data.
+
+This class extends `OptimizePortfolioWeights` and applies its optimization methods in a realistic backtesting framework, allowing portfolio weights to be recalculated at fixed intervals and portfolio value to evolve day by day.
+
+#### Methods:
+
+---
+
+* **optimize_weights(prices, n_days, periods)**
+  Computes optimized portfolio weights for a given rebalancing period using historical price data.
+  The method dynamically updates the inherited optimizer state and returns weights for multiple optimization strategies, including minimum variance, maximum Sharpe ratio, semivariance, Omega, minimum CVaR, and minimum CVaR contribution.
+
+* **simulation()**
+  Runs a full dynamic backtesting simulation over the specified time horizon.
+  The method:
+
+  * Splits the data into rolling optimization and out-of-sample backtesting windows
+  * Rebalances the portfolio at fixed intervals
+  * Simulates daily portfolio value evolution for each optimization strategy
+  * Returns a time series of portfolio values for all strategies in a single DataFrame
+
+-----
 
 **Note:** See usage examples for better understanding.
+
 
 ## Usage Example
 ```python
@@ -420,9 +362,8 @@ from scipy.optimize import minimize
 stocks = ["AAPL", "TSLA", "AMD", "LMT", "JPM"]
 start_date = "2020-01-01"
 end_date = "2023-01-01"
-type = 'Close' # 'Close', select the type of price you want to download
 
-data = vt.get_data(stocks, start_date, end_date, type)
+data = vt.get_data(stocks, start_date, end_date)
 ```
 
 ## var_stocks
@@ -430,14 +371,14 @@ data = vt.get_data(stocks, start_date, end_date, type)
 stocks = ["AAPL", "TSLA", "AMD", "LMT", "JPM"]
 start_date = "2020-01-01"
 end_date = "2023-01-01"
-type = 'Close' # 'Close', select the type of price you want to download
 
-data = vt.get_data(stocks, start_date, end_date, type)
+data = vt.get_data(stocks, start_date, end_date)
 n_stocks =[2193, 1211, 3221, 761, 1231]
 conf = 95
 long = True
 
 var_df = vt.var_stocks(data, n_stocks, conf, long, stocks)
+var_df
 ```
 
 ## var_forex
@@ -445,14 +386,14 @@ var_df = vt.var_stocks(data, n_stocks, conf, long, stocks)
 currencies = ['CHFMXN=X', 'MXN=X']
 start_date = "2020-01-01"
 end_date = "2024-12-02"
-type = 'Close'
 
-data = vt.get_data(currencies, start_date, end_date, type)
+data = vt.get_data(currencies, start_date, end_date)
 positions = [7100000, 5300000] # How much you have in each currency. Must match the order in currencies.
 conf = 99 # Nivel de confianza
 long = True
 
 var_forex_df = vt.var_forex(data, positions, conf, long, currencies)
+var_forex_df
 ```
 
 ## rebalance_stocks
@@ -460,9 +401,8 @@ var_forex_df = vt.var_forex(data, positions, conf, long, currencies)
 stocks = ["AAPL", "TSLA", "AMD", "LMT", "JPM"]
 start_date = "2020-01-01"
 end_date = "2023-01-01"
-type = 'Close' # 'Close', select the type of price you want to download
 
-data = vt.get_data(stocks, start_date, end_date, type)
+data = vt.get_data(stocks, start_date, end_date)
 
 rt = data.pct_change().dropna()
 stock_value = n_stocks * data.iloc[-1]
@@ -471,6 +411,7 @@ w_original = stock_value / portfolio_value
 w_opt = [0.33, 0.15, 0.06, 0.46, 0.00]
 
 rebalance_df = vt.rebalance_stocks(w_original, w_opt, data, stocks, portfolio_value)
+rebalance_df
 ```
 
 ## var_weights
@@ -478,13 +419,13 @@ rebalance_df = vt.rebalance_stocks(w_original, w_opt, data, stocks, portfolio_va
 stocks = ["AAPL", "TSLA", "AMD", "LMT", "JPM"]
 start_date = "2020-01-01"
 end_date = "2023-01-01"
-type = 'Close' # 'Close', select the type of price you want to download
 
-data = vt.get_data(stocks, start_date, end_date, type)
+data = vt.get_data(stocks, start_date, end_date)
 
 weights = [0.2457, 0.1301, 0.1820, 0.3064, 0.1358]
 conf = 95
 var_pct = vt.var_weights(data, weights, conf)
+var_pct
 ```
 
 ## cvar_weights
@@ -492,73 +433,15 @@ var_pct = vt.var_weights(data, weights, conf)
 stocks = ["AAPL", "TSLA", "AMD", "LMT", "JPM"]
 start_date = "2020-01-01"
 end_date = "2023-01-01"
-type = 'Close' # 'Close', select the type of price you want to download
 
-data = vt.get_data(stocks, start_date, end_date, type)
+data = vt.get_data(stocks, start_date, end_date)
 
 weights = [0.2457, 0.1301, 0.1820, 0.3064, 0.1358]
 conf = 95
 cvar_pct = vt.cvar_weights(data, weights, conf)
+cvar_pct
 ```
 
-## opt_sharpe
-```python
-stocks=['WMT','AAPL','GOOGL','PG','XOM','KO','CMG','F']
-start_date='2020-01-01'
-end_date='2024-11-24'
-type='Close'
-
-data = vt.get_data(stocks, start_date, end_date, type)
-returns = data.pct_change().dropna()
-rf = 0.04413
-
-opt_sharpe_weights = vt.opt_sharpe(returns, rf)
-```
-
-## min_variance
-```python
-stocks=['WMT','AAPL','GOOGL','PG','XOM','KO','CMG','F']
-start_date='2020-01-01'
-end_date='2024-11-24'
-type='Close'
-
-data = vt.get_data(stocks, start_date, end_date, type)
-returns = data.pct_change().dropna()
-
-min_var_weights = vt.min_variance(returns)
-```
-
-
-## min_cvar
-```python
-# bonds, commodities, equities and real estate
-stocks = ['VBTLX', 'GSG', 'VTI', 'VNQ']
-start_date = '2019-01-01'
-end_date = '2024-01-01'
-type = 'Close'
-
-data = vt.get_data(stocks, start_date, end_date, type)
-returns = data.pct_change().dropna()
-alpha = 0.05
-
-min_cvar = vt.min_cvar(returns, alpha)
-```
-
-
-## mcc_portfolio
-```python
-# bonds, commodities, equities and real estate
-stocks = ['VBTLX', 'GSG', 'VTI', 'VNQ']
-start_date = '2019-01-01'
-end_date = '2024-01-01'
-type = 'Close'
-
-data = vt.get_data(stocks, start_date, end_date, type)
-returns = data.pct_change().dropna()
-alpha = 0.05
-
-mcc_weights = vt.mcc_portfolio(returns, alpha)
-```
 
 ## cvar_contributions
 ```python
@@ -566,15 +449,15 @@ mcc_weights = vt.mcc_portfolio(returns, alpha)
 stocks = ['VBTLX', 'GSG', 'VTI', 'VNQ']
 start_date = '2019-01-01'
 end_date = '2024-01-01'
-type = 'Close'
 
-data = vt.get_data(stocks, start_date, end_date, type)
+data = vt.get_data(stocks, start_date, end_date)
 returns = data.pct_change().dropna()
 alpha = 0.05
 
 mcc_weights = vt.mcc_portfolio(returns, alpha)
 
 cvar_contributions = vt.cvar_contributions(mcc_weights, returns, alpha)
+cvar_contributions
 ```
 
 
@@ -583,15 +466,14 @@ cvar_contributions = vt.cvar_contributions(mcc_weights, returns, alpha)
 stocks=['WMT','AAPL','GOOGL','PG','XOM','KO','CMG','F']
 start_date='2020-01-01'
 end_date='2024-11-24'
-type='Close'
 
-data = vt.get_data(stocks, start_date, end_date, type)
+data = vt.get_data(stocks, start_date, end_date)
 returns = data.pct_change().dropna()
 rf = 0.04413
 
-opt_sharpe = vt.opt_sharpe(returns, rf)
+min_var = vt.OptimizePortfolioWeights(returns, rf).opt_min_var()
 
-vt.plot_weights(stocks, opt_sharpe)
+vt.plot_weights(stocks, min_var)
 ```
 
 
@@ -648,27 +530,53 @@ print(f'Buy {hedge} millions of dollars of the underlying asset')
 ```
 
 
-## backtest_one_indicator
+## OptimizePortfolioWeights
 ```python
-# We assume that there is dataframe called data with your 'buy_signal', 'sell_signal', and the 'Close' columns
+stocks=['WMT','AAPL','GOOGL','PG','XOM','KO','CMG','F']
+start_date='2020-01-01'
+end_date='2024-11-24'
 
-COM: float = 0.125 / 100
-BORROW_RATE: float = 0.25 / 100
-INITIAL_MARGIN = 0.5
-MAINTENANCE_MARGIN = 0.25
+data = vt.get_data(stocks, start_date, end_date)
+returns = data.pct_change().dropna()
+rf = 0.04413
 
-# Time frame in minutes
-time_frame: float = 5.0
+opt_sharpe_weights = vt.OptimizePortfolioWeights(returns, rf).opt_max_sharpe()
+opt_sharpe_weights
+```
 
-# DOF
-STOP_LOSS: float = 0.1
-TAKE_PROFIT: float = 0.1
-N_SHARES: int = 50
 
-# Money
-capital: float = 1_000_000
+```python
+tickers = ['NVDA','AMZN','AVGO','PG','V','RL','GLD']
 
-money, portfolio = backtest_one_indicator(data, COM, BORROW_RATE, INITIAL_MARGIN, MAINTENANCE_MARGIN, STOP_LOSS, TAKE_PROFIT, N_SHARES, capital, time_frame)
+benchmark = 'SPY'
+start_date = '2025-01-01'
+end_date = '2025-12-31'
+
+price = vt.get_data(tickers, start_date, end_date)
+benchmark_data = vt.get_data([benchmark], start_date, end_date)
+
+rt_benchmark = benchmark_data.pct_change().dropna()
+rt = price.pct_change().dropna()
+
+min_semivar_weights = vt.OptimizePortfolioWeights(rt, 0.0).opt_min_semivar(rt_benchmark)
+min_semivar_weights
+```
+
+
+## DynamicBacktesting
+```python
+stocks=['WMT','AAPL','GOOGL','PG','XOM','KO','CMG','F']
+start_date='2020-01-01'
+end_date='2024-11-24'
+
+data = vt.get_data(stocks, start_date, end_date)
+returns = data.pct_change().dropna()
+rf = 0.0035
+pv = 1_000_000.0
+months = 2
+
+history = vt.DynamicBacktesting(price, benchmark_data, capital=1_000_000, rf=rf, months=months).simulation()
+history
 ```
 
 
