@@ -244,13 +244,13 @@ A function to calculate the CVaR contributions of each asset in a portfolio.
     A DataFrame containing the returns of the assets in the portfolio.
 - **alpha** : `float`
 
-    The alpha value for the CVaR calculation (e.g., 0.05 for 95% confidence).
+    The confidence level for the CVaR calculation (e.g., 95 for 95% confidence).
 
 #### Returns:
 --------
 **contributions** : `list`
 
-**Note:** It is required to write alpha in decimal notation, also this portfolio strategy only works for long positions, so the weights must add up to 1.
+**Note:** This portfolio strategy only works for long positions, so the weights must add up to 1.
 
 --------
 
@@ -452,9 +452,9 @@ end_date = '2024-01-01'
 
 data = vt.get_data(stocks, start_date, end_date)
 returns = data.pct_change().dropna()
-alpha = 0.05
+alpha = 95
 
-mcc_weights = vt.mcc_portfolio(returns, alpha)
+mcc_weights = vt.OptimizePortfolioWeights(returns, 0.0).opt_mcc(alpha)
 
 cvar_contributions = vt.cvar_contributions(mcc_weights, returns, alpha)
 cvar_contributions
@@ -577,6 +577,28 @@ months = 2
 
 history = vt.DynamicBacktesting(price, benchmark_data, capital=1_000_000, rf=rf, months=months).simulation()
 history
+```
+
+
+## simulate_portfolio
+```python
+stocks = ["AAPL", "TSLA", "AMD", "LMT", "JPM"]
+start_date = "2020-01-01"
+end_date = "2023-01-01"
+
+data = vt.get_data(stocks, start_date, end_date)
+weights = [0.2, 0.2, 0.2, 0.2, 0.2]
+days = 252
+N = 10000
+
+simulations = vt.simulate_portfolio(data, weights, days, N)
+
+plt.figure(figsize=(10, 6))
+plt.plot(simulations[:, :100], alpha=0.3)
+plt.title("Simulated Portfolio Paths (Cholesky)")
+plt.xlabel("Days")
+plt.ylabel("Cumulative Value")
+plt.show()
 ```
 
 

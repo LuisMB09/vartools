@@ -3,9 +3,12 @@ import pandas as pd
 import yfinance as yf
 from scipy.stats import norm
 import matplotlib.pyplot as plt
-from dataclasses import dataclass
 from scipy.optimize import minimize
-pd.set_option('display.float_format', '{:,.4f}'.format)
+
+
+def _validate_confidence(value, name="conf"):
+    if not (0 < value < 100):
+        raise ValueError(f"{name} must be between 0 and 100 (exclusive), got {value}")
 
 
 def get_data(stocks: str | list, start_date: str, end_date: str):
@@ -28,7 +31,9 @@ def get_data(stocks: str | list, start_date: str, end_date: str):
         A DataFrame containing the stock data.
     """
 
-    data=yf.download(stocks, start=start_date, end=end_date)['Close'][stocks]
+    if isinstance(stocks, str):
+        stocks = [stocks]
+    data = yf.download(stocks, start=start_date, end=end_date)['Close'][stocks]
     return data
 
 
@@ -59,6 +64,7 @@ def var_stocks(data: pd.DataFrame, n_stocks: list, conf: int | float, long: bool
     Notes: n_stocks and stocks must coincide in lenght and order.
     """
 
+    _validate_confidence(conf)
     data = data.sort_index()
     data = data[stocks]
     rt = data.pct_change().dropna()
@@ -109,6 +115,7 @@ def var_forex(data: pd.DataFrame, positions: list, conf: int | float, long: bool
     Notes: n_stocks and stocks must coincide in lenght and order.
     """
 
+    _validate_confidence(conf)
     data = data.sort_index()
     data = data[currencies]
     port = data * positions
@@ -158,9 +165,9 @@ def rebalance_stocks(w_original: list, target_weights: list, data: pd.DataFrame,
     n_stocks = (target_weights - w_original) * portfolio_value / data.iloc[-1]
 
     w_df = pd.DataFrame({
-    "Peso Original": w_original,
-    "Peso Óptimo": target_weights,
-    "Acciones (C/V)" : n_stocks
+    "Original Weights": w_original,
+    "Target Weights": target_weights,
+    "Shares (Buy/Sell)" : n_stocks
     })
 
     return w_df.T
@@ -186,6 +193,7 @@ def var_weights(data: pd.DataFrame, weights: list | np.ndarray, conf: int | floa
         The VaR value for the portfolio.
     """
 
+    _validate_confidence(conf)
     data = data.sort_index()
     rt = data.pct_change().dropna()
     portfolio_returns = np.dot(weights, rt.T)
@@ -212,6 +220,7 @@ def cvar_weights(data: pd.DataFrame, weights: list | np.ndarray, conf: int | flo
         The CVaR value for the portfolio.
     """
 
+    _validate_confidence(conf)
     data = data.sort_index()
     rt = data.pct_change().dropna()
     portfolio_returns = np.dot(weights, rt.T)
@@ -231,7 +240,7 @@ def cvar_contributions(weights: list | np.ndarray, returns: pd.DataFrame, alpha:
     returns : pd.DataFrame
         A DataFrame containing the returns of the assets in the portfolio.
     alpha : float
-        The alpha value for the CVaR calculation (e.g., 0.05 for 95% confidence).
+        The alpha value for the CVaR calculation (e.g., 95 for 95% confidence).
 
     Returns:
     -----------
@@ -240,6 +249,7 @@ def cvar_contributions(weights: list | np.ndarray, returns: pd.DataFrame, alpha:
         A list containing the CVaR contributions of each asset in the portfolio.
     """
 
+    _validate_confidence(alpha, "alpha")
     n_assets = len(weights)
     # CVaR for only long positions
     def portfolio_return(returns, weights):
@@ -247,7 +257,7 @@ def cvar_contributions(weights: list | np.ndarray, returns: pd.DataFrame, alpha:
 
     def individual_cvar_contributions(weights, returns, alpha):
         portfolio_returns = portfolio_return(returns, weights)
-        var = np.percentile(portfolio_returns, alpha*100)
+        var = np.percentile(portfolio_returns, 100 - alpha)
 
         # check which days are in the cvar for the portfolio
         bad_days_portfolio = portfolio_returns < var
@@ -319,6 +329,7 @@ def var_apl(data: pd.DataFrame, posiciones: list | np.ndarray, conf: float, long
         A DataFrame containing the VaR and CVaR values both as percentages and in cash terms.
     """
 
+    _validate_confidence(conf)
     data = data.sort_index()
 
     # Bid y Ask
@@ -346,7 +357,7 @@ def var_apl(data: pd.DataFrame, posiciones: list | np.ndarray, conf: float, long
     data['port_ret'] = np.dot(data[return_columns], w)
 
     # VaR calculation
-    var_pct = np.percentile(data['port_ret'].dropna(), 100 - conf*100) if long else np.percentile(data['port_ret'].dropna(), conf*100)
+    var_pct = np.percentile(data['port_ret'].dropna(), 100 - conf) if long else np.percentile(data['port_ret'].dropna(), conf)
     var_cash = pv * var_pct
 
     # C-VaR calculation
@@ -524,6 +535,16 @@ class OptimizePortfolioWeights:
     """
 
     def __init__(self, returns: pd.DataFrame, risk_free: float):
+        """
+        Initialize the portfolio optimizer.
+
+        Parameters
+        -----------
+        returns : pd.DataFrame
+            A DataFrame containing daily asset returns, with each column representing an asset.
+        risk_free : float
+            The annualized risk-free rate (e.g., 0.04 for 4%).
+        """
 
         self.rets = returns
         self.cov = returns.cov()
@@ -532,6 +553,14 @@ class OptimizePortfolioWeights:
 
     # Min Variance
     def opt_min_var(self):
+        """
+        Compute the portfolio weights that minimize total portfolio variance.
+
+        Returns:
+        -----------
+        weights : np.ndarray
+            The optimized weights for the minimum variance portfolio.
+        """
 
         def var(w): return w.T @ self.cov @ w
 
@@ -549,6 +578,14 @@ class OptimizePortfolioWeights:
 
     # Sharpe Ratio
     def opt_max_sharpe(self):
+        """
+        Compute the portfolio weights that maximize the Sharpe Ratio.
+
+        Returns:
+        -----------
+        weights : np.ndarray
+            The optimized weights for the maximum Sharpe ratio portfolio.
+        """
         rets = self.rets
         rend, cov, rf = self.rets.mean(), self.cov, self.rf
 
@@ -564,6 +601,19 @@ class OptimizePortfolioWeights:
 
     # Semivariance method
     def opt_min_semivar(self, rets_benchmark):
+        """
+        Compute the portfolio weights that minimize target semivariance relative to a benchmark.
+
+        Parameters
+        -----------
+        rets_benchmark : pd.DataFrame
+            A DataFrame containing the daily returns of the benchmark.
+
+        Returns:
+        -----------
+        weights : np.ndarray
+            The optimized weights for the minimum semivariance portfolio.
+        """
 
         rets, corr = self.rets.copy(), self.rets.corr()
 
@@ -590,6 +640,19 @@ class OptimizePortfolioWeights:
 
     # Omega
     def opt_max_omega(self, rets_benchmark):
+        """
+        Compute the portfolio weights that maximize the Omega ratio relative to a benchmark.
+
+        Parameters
+        -----------
+        rets_benchmark : pd.DataFrame
+            A DataFrame containing the daily returns of the benchmark.
+
+        Returns:
+        -----------
+        weights : np.ndarray
+            The optimized weights for the maximum Omega ratio portfolio.
+        """
 
         rets = self.rets.copy()
 
@@ -617,7 +680,21 @@ class OptimizePortfolioWeights:
     
     # Min CVaR
     def opt_min_cvar(self, alpha):
+        """
+        Compute the portfolio weights that minimize Conditional Value at Risk (CVaR).
 
+        Parameters
+        -----------
+        alpha : int | float
+            The confidence level for the CVaR calculation (e.g., 95 for 95% confidence).
+
+        Returns:
+        -----------
+        weights : np.ndarray
+            The optimized weights for the minimum CVaR portfolio.
+        """
+
+        _validate_confidence(alpha, "alpha")
         returns = self.rets.values
 
         def portfolio_returns(w):
@@ -627,7 +704,7 @@ class OptimizePortfolioWeights:
             pr = portfolio_returns(w)
 
             # Low percentile of returns (left tail)
-            var = np.percentile(pr, (1 - alpha) * 100)
+            var = np.percentile(pr, 100 - alpha)
 
             # CVaR as mean of worst returns
             return -pr[pr <= var].mean()
@@ -649,7 +726,21 @@ class OptimizePortfolioWeights:
     
     # MCC Portfolio
     def opt_mcc(self, alpha):
+        """
+        Compute the portfolio weights that minimize the maximum individual asset CVaR contribution (MCC).
 
+        Parameters
+        -----------
+        alpha : int | float
+            The confidence level for the CVaR calculation (e.g., 95 for 95% confidence).
+
+        Returns:
+        -----------
+        weights : np.ndarray
+            The optimized weights for the minimum CVaR contribution portfolio.
+        """
+
+        _validate_confidence(alpha, "alpha")
         returns = self.rets
         n_assets = self.n_stocks
 
@@ -660,7 +751,7 @@ class OptimizePortfolioWeights:
             pr = portfolio_returns(w)
 
             # Low percentile of returns (left tail)
-            var = np.percentile(pr, (1 - alpha) * 100)
+            var = np.percentile(pr, 100 - alpha)
 
             bad_days = pr <= var
 
@@ -693,29 +784,61 @@ class OptimizePortfolioWeights:
 
 class DynamicBacktesting(OptimizePortfolioWeights):
     """
-    A class to perform dynamic backtesting of portfolio optimization strategies over a specified time horizon.
+    A class to perform dynamic (rolling) backtesting of portfolio optimization strategies over a specified time horizon.
 
-    Args:
-        OptimizePortfolioWeights (Class): A class that provides various portfolio optimization methods.
-
-    Returns:
-        A class that performs dynamic backtesting of portfolio optimization strategies.
+    This class extends OptimizePortfolioWeights and applies its optimization methods in a realistic
+    backtesting framework, allowing portfolio weights to be recalculated at fixed intervals and
+    portfolio value to evolve day by day.
     """
-    
-    # Definir las variables que necesitamos dentro de todas las funciones
-    def __init__(self, prices, prices_benchmark, capital, rf, months, alpha=0.95):
-        self.prices = prices # Atributo para los precios que se almacena en self 
-        self.prices_benchmark = prices_benchmark # Atributo para los precios del benchmark que se almacena en self 
-        self.months = months # Atributo para los meses que se almacena en self 
-        self.capital = capital # Atributos para el capital que se almacena en self 
-        self.rf = rf  # Atributa de tasa libre riesgo que se almacena en self 
-        self.alpha = alpha # Atributo alpha para CVaR que se almacena en self
+
+    def __init__(self, prices, prices_benchmark, capital, rf, months, alpha=95):
+        """
+        Initialize the dynamic backtesting simulation.
+
+        Parameters
+        -----------
+        prices : pd.DataFrame
+            A DataFrame containing historical asset prices, indexed by date.
+        prices_benchmark : pd.DataFrame
+            A DataFrame containing historical benchmark prices, indexed by date.
+        capital : float
+            The initial capital for the simulation.
+        rf : float
+            The annualized risk-free rate (e.g., 0.04 for 4%).
+        months : int
+            The number of months per rebalancing period.
+        alpha : int | float, optional
+            The confidence level for CVaR-based strategies (e.g., 95 for 95% confidence). Defaults to 95.
+        """
+        self.prices = prices
+        self.prices_benchmark = prices_benchmark
+        self.months = months
+        self.capital = capital
+        self.rf = rf
+        self.alpha = alpha
 
         # Inicialización dummy del optimizador (se sobreescribe dinámicamente)
         super().__init__(returns=pd.DataFrame(), risk_free=rf)
         
-    # Clase para optimizar los pesos
     def optimize_weights(self, prices: pd.DataFrame, n_days: int, periods: int):
+        """
+        Compute optimized portfolio weights for a given rebalancing period.
+
+        Parameters
+        -----------
+        prices : pd.DataFrame
+            A DataFrame containing historical asset prices.
+        n_days : int
+            The number of trading days per rebalancing window.
+        periods : int
+            The current period index (0-based) to select the data slice.
+
+        Returns:
+        -----------
+        tuple of np.ndarray
+            A tuple containing the optimized weights for each strategy:
+            (min_var, max_sharpe, min_semivar, max_omega, min_cvar, mcc).
+        """
         
         # Extrae el subconjunto de precios actual para el periodo de optimización
         temp_data = prices.iloc[int(n_days * periods):int(n_days * (periods + 1)), :]   
@@ -744,8 +867,19 @@ class DynamicBacktesting(OptimizePortfolioWeights):
         return w_minvar, w_sharpe, w_semivar, w_omega, w_min_cvar, w_mcc
 
     def simulation(self):
-        
-        # Son los días redondeados a 0 decimales , son los numero de dias del periodo de la simulación/bt
+        """
+        Run a full dynamic backtesting simulation over the specified time horizon.
+
+        Splits the data into rolling optimization and out-of-sample backtesting windows,
+        rebalances the portfolio at fixed intervals, and simulates daily portfolio value
+        evolution for each optimization strategy.
+
+        Returns:
+        -----------
+        df : pd.DataFrame
+            A DataFrame indexed by date with columns for each strategy's portfolio value
+            over time: Min Variance, Sharpe, Semivariance, Omega, Min CVaR, and MCC.
+        """
         n_days = round(len(self.prices) / round(len(self.prices) / 252 / (self.months / 12)), 0) 
         
         # Es el capital inicial de la simulación/bt
@@ -759,9 +893,6 @@ class DynamicBacktesting(OptimizePortfolioWeights):
         
         # Se calculan los rendimientos del periodo de simulación/bt
         backtesting_rets = backtesting_data.pct_change().dropna() 
-        
-        # Se hace una copia de los precios de benchmark y se extrae el subconjunto de los precios para el periodo y se calculan los rendimientos 
-        backtesting_bench = self.prices_benchmark.copy().iloc[int(n_days):, :].pct_change().dropna() 
         
         # Se inicializa los contadores de los días y de los periodos 
         day_counter, periods_counter = 0, 0 
@@ -812,4 +943,45 @@ class DynamicBacktesting(OptimizePortfolioWeights):
         df.set_index('Date', inplace=True)
 
         return df
-    
+
+
+def simulate_portfolio(data: pd.DataFrame, weights: list | np.ndarray, days: int, N: int = 10000) -> np.ndarray:
+    """
+    Simulate future portfolio price paths using the Cholesky decomposition method,
+    preserving asset correlations.
+
+    Parameters
+    -----------
+    data : pd.DataFrame
+        A DataFrame containing historical asset prices, indexed by date.
+        Each column represents a different asset.
+    weights : list | np.ndarray
+        A list of portfolio weights for each asset. Must sum to 1.
+    days : int
+        The number of days to simulate forward.
+    N : int, optional
+        The number of simulation paths. Defaults to 10000.
+
+    Returns:
+    -----------
+    portfolio_simulated_returns : np.ndarray
+        A 2D array of shape (days, N) containing the cumulative portfolio
+        value paths, starting from 1.
+    """
+
+    returns = data.pct_change().dropna()
+    mean_returns = returns.mean()
+    cov_returns = returns.cov()
+
+    portfolio_return = np.dot(weights, mean_returns)
+    mean_matrix = np.full(shape=(days, len(weights)), fill_value=portfolio_return)
+
+    L = np.linalg.cholesky(cov_returns)
+    portfolio_simulated_returns = np.zeros((days, N))
+
+    for m in range(N):
+        Z = np.random.normal(size=(days, len(weights)))
+        daily_returns = mean_matrix.T + L @ Z.T
+        portfolio_simulated_returns[:, m] = np.cumprod(np.dot(weights, daily_returns) + 1)
+
+    return portfolio_simulated_returns
