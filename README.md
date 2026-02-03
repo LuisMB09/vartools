@@ -12,6 +12,7 @@ This Python library provides functions to calculate the **Value at Risk (VaR)** 
 - Rebalance a **stock portfolio**.
 - Portfolio optimization for multiple strategies.
 - Dynamic portfolio backtest.
+- **Bond pricing** and interest rate risk analytics (duration, convexity).
 
 ## Installation
 Ensure you have the required dependencies installed:
@@ -288,6 +289,47 @@ A class to implement the Black-Scholes model for option pricing and delta hedgin
 -----
 
 
+### `Bond`
+
+A class to model fixed-coupon bonds with pricing and interest rate risk analytics.
+
+This class models a standard fixed-rate bond and provides methods to calculate its theoretical price and key risk measures (duration, convexity).
+
+#### Constructor Parameters:
+-----------
+- **face_value** : `float`
+
+    Par/principal value repaid at maturity (e.g., 1000).
+- **coupon_rate** : `float`
+
+    Annual coupon rate as decimal (e.g., 0.05 for 5%).
+- **years_to_maturity** : `int`
+
+    Number of years until bond matures.
+- **yield_to_maturity** : `float`
+
+    Market discount rate as decimal.
+- **payments_per_year** : `int`
+
+    Coupon payment frequency (1=annual, 2=semi-annual, 4=quarterly, 12=monthly). Default is 1.
+
+#### Methods:
+--------
+- **price()**: Calculates the bond's theoretical price as the present value of all future cash flows discounted at the yield to maturity.
+
+- **macaulay_duration()**: Calculates the weighted average time to receive the bond's cash flows (in years).
+
+- **modified_duration()**: Measures the percentage change in bond price for a 1% change in yield. Adjusts Macaulay Duration for compounding.
+
+- **convexity()**: Measures the curvature of the price-yield relationship, capturing second-order effects that duration misses.
+
+- **price_change_estimate(yield_change)**: Estimates percentage price change using duration and convexity for a given yield change (Taylor series approximation).
+
+- **summary()**: Generates a formatted summary of all bond analytics including terms, valuation, risk metrics, and sensitivity analysis.
+
+-----
+
+
 ### `OptimizePortfolioWeights`
 
 A class to optimize portfolio asset weights using multiple quantitative portfolio construction techniques based on risk, return, and downside risk measures.
@@ -527,6 +569,53 @@ info_put = [[20.3, 20.2, 0.0425, 0.156, 1/12, 12],
 # If N is in millions of dollar, then
 hedge = vt.BlackScholes().delta_hedge(info_call, info_put)
 print(f'Buy {hedge} millions of dollars of the underlying asset')
+```
+
+
+## Bond
+```python
+# Create a 5-year bond with 6% annual coupon, priced at 8% yield
+bond = vt.Bond(
+    face_value=1000,
+    coupon_rate=0.06,
+    years_to_maturity=5,
+    yield_to_maturity=0.08,
+    payments_per_year=1
+)
+
+# Get bond price
+price = bond.price()
+print(f"Bond Price: ${price:.2f}")
+
+# Get risk metrics
+mac_dur = bond.macaulay_duration()
+mod_dur = bond.modified_duration()
+conv = bond.convexity()
+
+print(f"Macaulay Duration: {mac_dur:.4f} years")
+print(f"Modified Duration: {mod_dur:.4f}")
+print(f"Convexity: {conv:.4f}")
+
+# Estimate price change for +100bp yield increase
+total_chg, dur_eff, conv_eff = bond.price_change_estimate(0.01)
+print(f"Price change for +100bp: {total_chg*100:.2f}%")
+
+# Print full summary
+print(bond.summary())
+```
+
+```python
+# Semi-annual coupon bond example
+bond_semi = vt.Bond(
+    face_value=1000,
+    coupon_rate=0.05,
+    years_to_maturity=10,
+    yield_to_maturity=0.045,
+    payments_per_year=2
+)
+
+print(f"Semi-annual bond price: ${bond_semi.price():.2f}")
+print(f"Modified Duration: {bond_semi.modified_duration():.4f}")
 ```
 
 
